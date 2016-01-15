@@ -4,7 +4,7 @@ module.exports = L.Class.extend({
 
   options: {
     opacity: 1,
-    padding: 0 //L.Path.CLIP_PADDING
+    padding: L.Path.CLIP_PADDING
   },
 
   /**

@@ -1,107 +1,15 @@
 var SvgLayer = require('./svglayer');
 var xhr = require('xhr');
 
+require('./bounds');
+require('./utils');
 
-/**
- * @param  {*}  o
- * @return {Boolean}
- */
-function isNode(o){
-  return (
-    typeof Node === 'object' ?
-    o instanceof Node :
-    o && typeof o === 'object' &&
-    typeof o.nodeType === 'number' &&
-    typeof o.nodeName === 'string'
-  );
-}
-
-
-/**
- * @param  {SVGElement} svg
- * @return {Array.<Number>}
- */
-function getBBox(svg) {
-  var viewBox = svg.getAttribute('viewBox');
-  var bbox;
-  if (viewBox) {
-    bbox = viewBox.split(' ').map(parseFloat);
-  } else {
-    var clone = svg.cloneNode(true);
-    document.body.appendChild(clone);
-    bbox = clone.getBBox();
-    document.body.removeChild(clone);
-    bbox = [bbox.x, bbox.y, bbox.width, bbox.height];
-  }
-  return [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]];
-}
-
-
-/**
- * @param  {String} str
- * @return {SVGElement}
- */
-function getSVGContainer(str) {
-  var wrapper = document.createElement('div');
-  wrapper.innerHTML = str;
-  return wrapper.querySelector('svg');
-}
-
-
-/**
- * @return {Array.<Number>}
- */
-L.Bounds.prototype.toBBox = function() {
-  return [this.min.x, this.min.y, this.max.x, this.max.y];
-};
-
-
-/**
- * @param  {Number} value
- * @return {L.Bounds}
- */
-L.Bounds.prototype.scale = function(value) {
-  var max = this.max;
-  var min = this.min;
-  var deltaX = ((max.x - min.x) / 2) * (value - 1);
-  var deltaY = ((max.y - min.y) / 2) * (value - 1);
-
-  return new L.Bounds([
-    [min.x - deltaX, min.y - deltaY],
-    [max.x + deltaX, max.y + deltaY]
-  ]);
-};
-
-
-/**
- * @return {Array.<Number>}
- */
-L.LatLngBounds.prototype.toBBox = function() {
-  return [this.getWest(), this.getSouth(), this.getEast(), this.getNorth()];
-};
-
-
-/**
- * @param  {Number} value
- * @return {L.LatLngBounds}
- */
-L.LatLngBounds.prototype.scale = function(value) {
-  var ne = this._northEast;
-  var sw = this._southWest;
-  var deltaX = ((ne.lng - sw.lng) / 2) * (value - 1);
-  var deltaY = ((ne.lat - sw.lat) / 2) * (value - 1);
-
-  return new L.LatLngBounds([
-    [sw.lat - deltaY, sw.lng - deltaX],
-    [ne.lat + deltaY, ne.lng + deltaX]
-  ]);
-};
 
 
 module.exports = SvgLayer.extend({
 
   options: {
-    padding: 0
+    // padding: 0.25
   },
 
 
@@ -161,9 +69,11 @@ module.exports = SvgLayer.extend({
    * @param  {String} svg markup
    */
   onLoad: function(svg) {
-    svg = getSVGContainer(svg);
-    var bbox = this._bbox = getBBox(svg);
+    svg = L.DomUtil.getSVGContainer(svg);
+    var bbox = this._bbox = L.DomUtil.getSVGBBox(svg);
     var minZoom = this._map.getMinZoom();
+
+    console.log('bbox calculated', bbox);
 
     // calculate the edges of the image, in coordinate space
     this._bounds = new L.LatLngBounds(

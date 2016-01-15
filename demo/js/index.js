@@ -22,12 +22,24 @@ map.on('draw:created', function (e) {
   map.addLayer(e.layer);
 });
 
-var svg = global.s = new SvgOverlay('data/2.svg')
-.once('load', function() {
-  map.fitBounds(svg.getBounds(), { animate: false });
-}).addTo(map);
+var svg = global.svg = null;
 
 
 map.on('click', function(e) {
   console.log('map', e.originalEvent.target);
 });
+
+var select = document.querySelector('#select-schematic');
+function onSelect() {
+  console.log(this.value);
+  if (svg) map.removeLayer(svg);
+
+  svg = global.svg = new SvgOverlay(this.value)
+    .once('load', function() {
+    map.fitBounds(svg.getBounds(), { animate: false });
+  }).addTo(map);
+}
+
+L.DomEvent.on(select, 'change', onSelect);
+
+onSelect.call(select)
