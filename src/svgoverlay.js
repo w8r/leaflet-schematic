@@ -1,6 +1,11 @@
 var SvgLayer = require('./svglayer');
 var xhr = require('xhr');
 
+
+/**
+ * @param  {*}  o
+ * @return {Boolean}
+ */
 function isNode(o){
   return (
     typeof Node === 'object' ?
@@ -11,31 +16,50 @@ function isNode(o){
   );
 }
 
-function getVieBox(svg) {
 
-
-}
-
+/**
+ * @param  {SVGElement} svg
+ * @return {Array.<Number>}
+ */
 function getBBox(svg) {
   var viewBox = svg.getAttribute('viewBox');
   var bbox;
   if (viewBox) {
     bbox = viewBox.split(' ').map(parseFloat);
   } else {
-    document.body.appendChild(svg);
-    bbox = svg.getBBox();
-    document.body.removeChild(svg);
+    var clone = svg.cloneNode(true);
+    document.body.appendChild(clone);
+    bbox = clone.getBBox();
+    document.body.removeChild(clone);
     bbox = [bbox.x, bbox.y, bbox.width, bbox.height];
   }
   return [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]];
 }
 
 
+/**
+ * @param  {String} str
+ * @return {SVGElement}
+ */
+function getSVGContainer(str) {
+  var wrapper = document.createElement('div');
+  wrapper.innerHTML = str;
+  return wrapper.querySelector('svg');
+}
+
+
+/**
+ * @return {Array.<Number>}
+ */
 L.Bounds.prototype.toBBox = function() {
   return [this.min.x, this.min.y, this.max.x, this.max.y];
 };
 
 
+/**
+ * @param  {Number} value
+ * @return {L.Bounds}
+ */
 L.Bounds.prototype.scale = function(value) {
   var max = this.max;
   var min = this.min;
@@ -47,13 +71,6 @@ L.Bounds.prototype.scale = function(value) {
     [max.x + deltaX, max.y + deltaY]
   ]);
 };
-
-
-function getSVGContainer(str) {
-  var wrapper = document.createElement('div');
-  wrapper.innerHTML = str;
-  return wrapper.querySelector('svg');
-}
 
 
 /**
@@ -88,10 +105,29 @@ module.exports = SvgLayer.extend({
   },
 
 
+  /**
+   * @constructor
+   * @extends {SvgLayer}
+   * @param  {String}         svg     SVG string or URL
+   * @param  {L.LatLngBounds} bounds
+   * @param  {Object=}        options
+   */
   initialize: function(svg, bounds, options) {
+
+
+    /**
+     * @type {String}
+     */
     this._svg    = svg;
+
+    /**
+     * @type {L.LatLngBounds}
+     */
     this._bounds = bounds;
 
+    /**
+     * @type {Number}
+     */
     this._ratio = 1;
 
     if (typeof svg === 'string' && !/\<svg/ig.test(svg)) {
@@ -99,6 +135,9 @@ module.exports = SvgLayer.extend({
       this._url = svg;
     }
 
+    /**
+     * @type {SVGElement}
+     */
     this._group = null;
 
     L.Util.setOptions(this, options);
@@ -117,6 +156,10 @@ module.exports = SvgLayer.extend({
   },
 
 
+  /**
+   * SVG is ready
+   * @param  {String} svg markup
+   */
   onLoad: function(svg) {
     svg = getSVGContainer(svg);
     var bbox = this._bbox = getBBox(svg);
@@ -133,7 +176,6 @@ module.exports = SvgLayer.extend({
 
     if (size.y !== mapSize.y) {
       var ratio = Math.min(mapSize.x / size.x, mapSize.y / size.y);
-      console.log(ratio, this._bounds.scale(ratio).toBBox(), this._bounds.toBBox(), size, mapSize);
       this._bounds = this._bounds.scale(ratio);
       this._ratio = ratio;
     }
@@ -150,16 +192,20 @@ module.exports = SvgLayer.extend({
     this._reset();
 
     this.fire('load');
-
-    console.log('size', size, '\nbbox', bbox, '\nratio', ratio);
   },
 
 
+  /**
+   * @return {L.LatLngBounds}
+   */
   getBounds: function() {
     return this._bounds;
   },
 
 
+  /**
+   * Loads svg via XHR
+   */
   load: function() {
     xhr({
       uri: this._url,
@@ -172,6 +218,10 @@ module.exports = SvgLayer.extend({
   },
 
 
+  /**
+   * @param  {L.Map} map
+   * @return {SvgOverlay}
+   */
   onAdd: function(map) {
     SvgLayer.prototype.onAdd.call(this, map);
     if (!this._svg) {
@@ -183,25 +233,34 @@ module.exports = SvgLayer.extend({
   },
 
 
+  /**
+   * @param  {L.Map} map
+   * @return {SvgOverlay}
+   */
   onRemove: function(map) {
     SvgLayer.prototype.onRemove.call(this, map);
     return this;
   },
 
 
+  /**
+   * We need to redraw on zoom end
+   */
   _endPathZoom: function() {
     this._reset();
     SvgLayer.prototype._endPathZoom.call(this);
   },
 
 
+  /**
+   * Redraw - compensate the position and scale
+   */
   _reset: function () {
     var image   = this._group;
     var scale   = Math.pow(2, this._map.getZoom() - 1) * this._ratio;
     var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
     var size    = this.getOriginalSize().multiplyBy(scale);
 
-    console.log(topLeft, size, scale, this._bounds.getNorthWest());
     this._group.style[L.DomUtil.TRANSFORM] =
        L.DomUtil.getTranslateString(topLeft) + ' scale(' + scale + ') ';
   },

@@ -22,7 +22,7 @@ map.on('draw:created', function (e) {
   map.addLayer(e.layer);
 });
 
-var svg = global.s = new SvgOverlay('data/3.svg')
+var svg = global.s = new SvgOverlay('data/2.svg')
 .once('load', function() {
   map.fitBounds(svg.getBounds(), { animate: false });
 }).addTo(map);

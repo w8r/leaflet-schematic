@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "watchify -v -t [ babelify --presets [ es2015 ] ] demo/js/index.js -o demo/js/build.js & serve -p 3002"
+    "start": "watchify -v -d -t [ babelify --presets [ es2015 ] ] demo/js/index.js -o demo/js/build.js & serve -p 3002",
+    "build": "browserify -v -d -t [ babelify --presets [ es2015 ] ] demo/js/index.js -o demo/js/build.js"
   },
   "author": "Alexander Milevski <info@w8r.name>",
   "license": "MIT",
