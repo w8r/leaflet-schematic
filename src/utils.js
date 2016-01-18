@@ -27,7 +27,9 @@ L.DomUtil.getSVGBBox = function(svg) {
     document.body.appendChild(clone);
     bbox = clone.getBBox();
     document.body.removeChild(clone);
-    bbox = [bbox.x, bbox.y, bbox.width, bbox.height];
+    bbox = [bbox.x, bbox.y,
+      parseInt(svg.getAttribute('width')) || bbox.width,
+      parseInt(svg.getAttribute('height')) || bbox.height];
   }
   return [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]];
 };

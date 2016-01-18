@@ -18,6 +18,35 @@ module.exports = L.Class.extend({
    * @param  {Object=} options
    */
   initialize: function(options) {
+    /**
+     * @type {Element}
+     */
+    this._container = null;
+
+
+    /**
+     * @type {SVGElement}
+     */
+    this._pathRoot  = null;
+
+
+    /**
+     * @type {L.Map}
+     */
+    this._map = null;
+
+
+    /**
+     * @type {L.Bounds}
+     */
+    this._pathViewport = null;
+
+
+    /**
+     * @type {Boolean}
+     */
+    this._pathZooming = false;
+
     L.Util.setOptions(this, options);
   },
 
@@ -56,7 +85,7 @@ module.exports = L.Class.extend({
     }
 
     this._map.off('moveend', this._updateSvgViewport, this);
-    this._map.getPanes().overlayPane.removeChild(this._pathRoot);
+    this._map.getPanes().overlayPane.removeChild(this._container);
     return this;
   },
 
@@ -105,6 +134,8 @@ module.exports = L.Class.extend({
    */
   _createRoot: function() {
     this._pathRoot = L.Path.prototype._createElement('svg');
+    this._container = L.DomUtil.create('div', 'leaflet-image-layer');
+    this._container.appendChild(this._pathRoot);
   },
 
 
@@ -114,7 +145,7 @@ module.exports = L.Class.extend({
   _initPathRoot: function () {
     if (!this._pathRoot) {
       this._createRoot();
-      this._map.getPanes().overlayPane.appendChild(this._pathRoot);
+      this._map.getPanes().overlayPane.appendChild(this._container);
 
       if (this._map.options.zoomAnimation && L.Browser.any3d) {
         L.DomUtil.addClass(this._pathRoot, 'leaflet-zoom-animated');
@@ -166,11 +197,6 @@ module.exports = L.Class.extend({
       ._multiplyBy(-scale)
       ._add(this._getViewport().min);
 
-    if (scale !== 1) {
-      this._lastScale = scale;
-      this._lastOffset = offset;
-    }
-
     this._pathRoot.style[L.DomUtil.TRANSFORM] =
       L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ') ';
 
@@ -212,16 +238,16 @@ module.exports = L.Class.extend({
 
     // Hack to make flicker on drag end on mobile webkit less irritating
     if (L.Browser.mobileWebkit) {
-      pane.removeChild(root);
+      this._container.removeChild(root);
     }
 
-    L.DomUtil.setPosition(root, min);
+    L.DomUtil.setPosition(this._pathRoot, min);
     root.setAttribute('width', width);
     root.setAttribute('height', height);
     root.setAttribute('viewBox', [min.x, min.y, width, height].join(' '));
 
     if (L.Browser.mobileWebkit) {
-      pane.appendChild(root);
+      this._container.appendChild(root);
     }
   }
 

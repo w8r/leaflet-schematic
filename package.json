@@ -11,6 +11,7 @@
   "author": "Alexander Milevski <info@w8r.name>",
   "license": "MIT",
   "dependencies": {
+    "Base64": "^0.3.0",
     "leaflet": "^0.7.7",
     "xhr": "^2.2.0"
   },
