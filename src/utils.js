@@ -42,3 +42,14 @@ L.DomUtil.getSVGContainer = function(str) {
   wrapper.innerHTML = str;
   return wrapper.querySelector('svg');
 };
+
+
+/**
+ * @param  {L.Point} translate
+ * @param  {Number}  scale
+ * @return {String}
+ */
+L.DomUtil.getMatrixString = function(translate, scale) {
+  return 'matrix(' +
+    [scale, 0, 0, scale, translate.x, translate.y].join(',') + ')';
+};

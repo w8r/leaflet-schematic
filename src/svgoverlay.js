@@ -94,8 +94,16 @@ module.exports = SvgLayer.extend({
       1, this._origin.x, 1, this._origin.y);
 
     this._group = L.Path.prototype._createElement('g');
+    if (L.Browser.ie) {
+      var child = svg.lastChild;
+      do {
+        this._group.appendChild(child);
+        child = svg.firstlastChild;
+      } while(child);
+    } else {
+      this._group.innerHTML = svg.innerHTML;
+    }
     this._pathRoot.appendChild(this._group);
-    this._group.innerHTML = svg.innerHTML;
 
     this.fire('load');
     this._reset();
@@ -168,8 +176,8 @@ module.exports = SvgLayer.extend({
     var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
     var size    = this.getOriginalSize().multiplyBy(scale);
 
-    this._group.style[L.DomUtil.TRANSFORM] =
-       L.DomUtil.getTranslateString(topLeft) + ' scale(' + scale + ') ';
+    this._group.setAttribute('transform',
+      L.DomUtil.getMatrixString(topLeft, scale));
   }
 
 });
