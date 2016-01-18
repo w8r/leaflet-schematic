@@ -69,11 +69,10 @@ module.exports = SvgLayer.extend({
    * @param  {String} svg markup
    */
   onLoad: function(svg) {
+    console.log('loaded', svg.length);
     svg = L.DomUtil.getSVGContainer(svg);
     var bbox = this._bbox = L.DomUtil.getSVGBBox(svg);
     var minZoom = this._map.getMinZoom();
-
-    console.log('bbox calculated', bbox);
 
     // calculate the edges of the image, in coordinate space
     this._bounds = new L.LatLngBounds(
@@ -94,14 +93,12 @@ module.exports = SvgLayer.extend({
     this._transformation = new L.Transformation(
       1, this._origin.x, 1, this._origin.y);
 
-
     this._group = L.Path.prototype._createElement('g');
     this._pathRoot.appendChild(this._group);
     this._group.innerHTML = svg.innerHTML;
 
-    this._reset();
-
     this.fire('load');
+    this._reset();
   },
 
 
@@ -173,7 +170,6 @@ module.exports = SvgLayer.extend({
 
     this._group.style[L.DomUtil.TRANSFORM] =
        L.DomUtil.getTranslateString(topLeft) + ' scale(' + scale + ') ';
-  },
-
+  }
 
 });

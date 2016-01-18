@@ -1,6 +1,5 @@
 var L = global.L || require('leaflet');
 
-
 /**
  * @return {Array.<Number>}
  */

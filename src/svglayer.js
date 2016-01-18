@@ -1,3 +1,5 @@
+var L = global.L || require('leaflet');
+
 module.exports = L.Class.extend({
 
   includes: L.Mixin.Events,
