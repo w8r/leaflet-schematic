@@ -10,8 +10,7 @@ require('./utils');
 module.exports = SvgLayer.extend({
 
   options: {
-    padding: 0,
-    useRaster: !L.Browser.ie
+    useRaster: L.Browser.ie
   },
 
 
@@ -235,7 +234,8 @@ module.exports = SvgLayer.extend({
     map
       .on('zoomend', this._onMapZoomEnd, this)
       .on('dragstart', this._onPreDrag, this)
-      .on('dragend', this._onDragEnd, this);
+      .on('dragend', this._onDragEnd, this)
+      .on('viereset moveend', this._reset, this);
 
     if (!this._svg) {
       this.load();
@@ -255,7 +255,8 @@ module.exports = SvgLayer.extend({
     map
       .off('zoomend', this._onMapZoomEnd, this)
       .off('dragstart', this._onPreDrag, this)
-      .off('dragend', this._onDragEnd, this);
+      .off('dragend', this._onDragEnd, this)
+      .off('viereset moveend', this._reset, this);
     return this;
   },
 
@@ -294,7 +295,7 @@ module.exports = SvgLayer.extend({
       var naturalSize = L.point(img.offsetWidth, img.offsetHeight);
       //canvas.width = naturalSize.x;
       //canvas.height = naturalSize.y;
-      ctx.drawImage(img, 0, 0, naturalSize.x, naturalSize.y);
+      //ctx.drawImage(img, 0, 0, naturalSize.x, naturalSize.y);
     }, this);
 
     if (!this._canvas) {
@@ -373,8 +374,8 @@ module.exports = SvgLayer.extend({
    */
   _showRaster: function () {
     if (this._canvas) {
-      this._canvas.style.display = 'block';
-      this._pathRoot.style.display    = 'none';
+      this._canvas.style.display   = 'block';
+      this._pathRoot.style.display = 'none';
     }
   },
 
@@ -384,7 +385,7 @@ module.exports = SvgLayer.extend({
    */
   _hideRaster: function () {
     if (this._canvas) {
-      //this._canvas.style.display = 'none';
+      this._canvas.style.display   = 'none';
       this._pathRoot.style.display = 'block';
     }
   },
@@ -415,7 +416,6 @@ module.exports = SvgLayer.extend({
    * Re-render canvas on zoomend
    */
   _onMapZoomEnd: function() {
-    console.log('zoom end');
     if (this.options.useRaster) {
        this.toImage();
        this._hideRaster();
@@ -423,22 +423,26 @@ module.exports = SvgLayer.extend({
   },
 
 
-  _redrawCanvas: function(topLeft) {
+  _redrawCanvas: function(topLeft, size) {
     if (this._canvas) {
       var vp = this._getViewport();
+      var canvas = this._canvas;
       var min = vp.min;
       var max = vp.max;
       var width = max.x - min.x;
       var height = max.y - min.y;
 
-      console.log(width, height);
+      var pos = topLeft.subtract(min);
 
-      this._canvas.width = width;
-      this._canvas.height = height;
+      canvas.width = width;
+      canvas.height = height;
 
-      var ctx = this._canvas.getContext('2d')
-      ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-      ctx.drawImage(this._raster, topLeft.x, topLeft.y)
+      var ctx = canvas.getContext('2d')
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(this._raster, pos.x, pos.y, size.x, size.y);
+      //ctx.rect(pos.x, pos.y, size.x, size.y);
+      //ctx.strokeStyle = 'red';
+      //ctx.stroke();
     }
   },
 
@@ -452,18 +456,14 @@ module.exports = SvgLayer.extend({
     var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
     var size    = this.getOriginalSize().multiplyBy(scale);
 
-    //console.log(this._canvas, this._raster, size);
-
-    if (this._canvas) {
-      this._redrawCanvas(topLeft);
-      L.DomUtil.setPosition(this._canvas, topLeft);
-       // this._canvas.style.width = size.x + 'px';
-       // this._canvas.style.height = size.y + 'px';
-    }
-
     if (this._raster) {
       this._raster.style.width = size.x + 'px';
       this._raster.style.height = size.y + 'px';
+    }
+
+    if (this._canvas) {
+      this._redrawCanvas(topLeft, size);
+      L.DomUtil.setPosition(this._canvas, this._getViewport().min);
     }
 
     this._group.setAttribute('transform',
