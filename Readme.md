@@ -16,9 +16,9 @@ several technical limitations and performance issues strike in:
 * you have to scale the drawing initially to fit the viewport on the certain
   zoom level
 * IE (as always) - I wouldn't even call that "SVG support"
-  * `<use>` elements have a special freaky non-compliant API and is broken
+  * `<use>` elements have a special freaky non-compliant API which is also broken
   * css-transforms - unsupported
-  * `translate() + scale()` transform on `<g>` -_ doesn't work_, use matrix
+  * `translate() + scale()` transform on `<g>` -_doesn't work_, use matrix
   * **horrible performance** - the more SVG nodes you have the slower it is
 
 
