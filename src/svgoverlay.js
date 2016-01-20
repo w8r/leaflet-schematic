@@ -72,7 +72,7 @@ module.exports = SvgLayer.extend({
     /**
      * @type {String}
      */
-    this._schematicData = '';
+    this._rawData = '';
 
     if (typeof svg === 'string' && !/\<svg/ig.test(svg)) {
       this._svg = null;
@@ -126,14 +126,14 @@ module.exports = SvgLayer.extend({
    * @param  {String} svg markup
    */
   onLoad: function(svg) {
-    this._schematicData = svg;
+    this._rawData = svg;
     svg = L.DomUtil.getSVGContainer(svg);
     var bbox = this._bbox = L.DomUtil.getSVGBBox(svg);
     var minZoom = this._map.getMinZoom();
 
     if (svg.getAttribute('viewBox') === null) {
       //console.log('missing', bbox);
-      this._schematicData = this._schematicData.replace('<svg',
+      this._rawData = this._rawData.replace('<svg',
         '<svg viewBox="' + bbox.join(' ') +
         '" preserveAspectRatio="xMaxYMax" ');
     }
@@ -173,6 +173,14 @@ module.exports = SvgLayer.extend({
     this.fire('load');
     this._onMapZoomEnd();
     this._reset();
+  },
+
+
+  /**
+   * @return {SVGElement}
+   */
+  getDocument: function() {
+    return this._group;
   },
 
 
@@ -337,7 +345,7 @@ module.exports = SvgLayer.extend({
   toBase64: function() {
     //console.time('base64');
     var base64 = this._base64encoded ||
-      b64.btoa(unescape(encodeURIComponent(this._schematicData)));
+      b64.btoa(unescape(encodeURIComponent(this._rawData)));
     this._base64encoded = base64;
     //console.timeEnd('base64');
 
