@@ -10,6 +10,7 @@ require('./utils');
 module.exports = SvgLayer.extend({
 
   options: {
+    padding: 0.25,
     useRaster: L.Browser.ie
   },
 
@@ -119,6 +120,13 @@ module.exports = SvgLayer.extend({
     svg = L.DomUtil.getSVGContainer(svg);
     var bbox = this._bbox = L.DomUtil.getSVGBBox(svg);
     var minZoom = this._map.getMinZoom();
+
+    if (svg.getAttribute('viewBox') === null) {
+      //console.log('missing', bbox);
+      this._schematicData = this._schematicData.replace('<svg', 
+        '<svg viewBox="' + bbox.join(' ') + 
+        '" preserveAspectRatio="xMaxYMax" ');
+    }
 
     // calculate the edges of the image, in coordinate space
     this._bounds = new L.LatLngBounds(
@@ -293,9 +301,8 @@ module.exports = SvgLayer.extend({
 
     L.DomEvent.on(img, 'load', function () {
       var naturalSize = L.point(img.offsetWidth, img.offsetHeight);
-      //canvas.width = naturalSize.x;
-      //canvas.height = naturalSize.y;
-      //ctx.drawImage(img, 0, 0, naturalSize.x, naturalSize.y);
+      //console.log('natural', naturalSize);
+      this._reset();
     }, this);
 
     if (!this._canvas) {
@@ -321,11 +328,11 @@ module.exports = SvgLayer.extend({
    * @return {String} base64 encoded SVG
    */
   toBase64: function() {
-    console.time('base64');
+    //console.time('base64');
     var base64 = this._base64encoded ||
       b64.btoa(unescape(encodeURIComponent(this._schematicData)));
     this._base64encoded = base64;
-    console.timeEnd('base64');
+    //console.timeEnd('base64');
 
     return 'data:image/svg+xml;base64,' + base64;
   },
@@ -356,8 +363,8 @@ module.exports = SvgLayer.extend({
 
   /**
    * Scales projected point TO viewportized schematic ratio
-   * @param  {L.Point} pt [description]
-   * @return {L.Point}    [description]
+   * @param  {L.Point} pt
+   * @return {L.Point}   
    */
   _scalePoint: function(pt) {
     return this._transformation.transform(
@@ -437,12 +444,23 @@ module.exports = SvgLayer.extend({
       canvas.width = width;
       canvas.height = height;
 
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+
+      // console.log(width, height, size.x, size.y);
+
       var ctx = canvas.getContext('2d')
-      ctx.clearRect(0, 0, width, height);
-      ctx.drawImage(this._raster, pos.x, pos.y, size.x, size.y);
-      //ctx.rect(pos.x, pos.y, size.x, size.y);
-      //ctx.strokeStyle = 'red';
-      //ctx.stroke();
+      L.Util.requestAnimFrame(function() {
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(this._raster, pos.x, pos.y, size.x, size.y);
+
+        // ctx.rect(pos.x, pos.y, size.x, size.y);
+        // ctx.strokeStyle = 'red';
+        // ctx.lineWidth = 0.1;
+        // ctx.stroke();
+      }, this);
+
+      //this._pathRoot.style.opacity = 0.5;
     }
   },
 
@@ -457,8 +475,10 @@ module.exports = SvgLayer.extend({
     var size    = this.getOriginalSize().multiplyBy(scale);
 
     if (this._raster) {
+      //console.log(size, scale);
       this._raster.style.width = size.x + 'px';
       this._raster.style.height = size.y + 'px';
+      L.DomUtil.setPosition(this._raster, this._getViewport().min);
     }
 
     if (this._canvas) {

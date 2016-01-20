@@ -8,7 +8,8 @@ var map = window.map = L.map('image-map', {
   maxZoom: 20,
   center: [0, 0],
   zoom: 1,
-  crs: L.CRS.Simple
+  crs: L.CRS.Simple,
+  inertia: !L.Browser.ie
 });
 
 var drawnItems = L.featureGroup().addTo(map);

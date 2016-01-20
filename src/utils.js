@@ -1,3 +1,17 @@
+
+// <use> tags are broken in IE in so many ways
+if ('SVGElementInstance' in global) {
+  Object.defineProperty(SVGElementInstance.prototype, 'className', {
+    get: function() {
+      return this.correspondingElement.className.baseVal;
+    },
+    set: function(val) {
+      this.correspondingElement.className.baseVal = val;
+    }
+  });
+}
+
+
 /**
  * @param  {*}  o
  * @return {Boolean}
@@ -28,8 +42,8 @@ L.DomUtil.getSVGBBox = function(svg) {
     bbox = clone.getBBox();
     document.body.removeChild(clone);
     bbox = [bbox.x, bbox.y,
-      parseInt(svg.getAttribute('width')) || bbox.width,
-      parseInt(svg.getAttribute('height')) || bbox.height];
+      parseInt(svg.getAttribute('width')) || svg.offsetWidth || bbox.width,
+      parseInt(svg.getAttribute('height')) || svg.offsetHeight || bbox.height];
   }
   return [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]];
 };

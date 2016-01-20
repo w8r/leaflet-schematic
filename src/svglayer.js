@@ -228,13 +228,13 @@ module.exports = L.Class.extend({
 
     this._updateContentViewport();
 
-    var vp = this._getViewport();
-    var min = vp.min;
-    var max = vp.max;
-    var width = max.x - min.x;
+    var vp     = this._getViewport();
+    var min    = vp.min;
+    var max    = vp.max;
+    var width  = max.x - min.x;
     var height = max.y - min.y;
-    var root = this._pathRoot;
-    var pane = this._map.getPanes().overlayPane;
+    var root   = this._pathRoot;
+    var pane   = this._map.getPanes().overlayPane;
 
     // Hack to make flicker on drag end on mobile webkit less irritating
     if (L.Browser.mobileWebkit) {
