@@ -1,5 +1,4 @@
 var SvgLayer = require('./svglayer');
-var xhr      = require('xhr');
 var b64      = require('Base64');
 
 require('./bounds');
@@ -12,6 +11,7 @@ module.exports = SvgLayer.extend({
   options: {
     padding: 0.25,
     useRaster: L.Browser.ie
+    // load: function(url, callback) {}
   },
 
 
@@ -28,6 +28,11 @@ module.exports = SvgLayer.extend({
      * @type {String}
      */
     this._svg    = svg;
+
+    if (!(bounds instanceof L.LatLngBounds)) {
+      options = bounds;
+      bounds = null;
+    }
 
     /**
      * @type {L.LatLngBounds}
@@ -76,6 +81,11 @@ module.exports = SvgLayer.extend({
        * @type {String}
        */
       this._url = svg;
+
+      if (!options.load) {
+        throw new Error('SvgOverlay requires external request implementation. '+
+          'You have to provide `load` function with the options');
+      }
     }
 
     /**
@@ -123,8 +133,8 @@ module.exports = SvgLayer.extend({
 
     if (svg.getAttribute('viewBox') === null) {
       //console.log('missing', bbox);
-      this._schematicData = this._schematicData.replace('<svg', 
-        '<svg viewBox="' + bbox.join(' ') + 
+      this._schematicData = this._schematicData.replace('<svg',
+        '<svg viewBox="' + bbox.join(' ') +
         '" preserveAspectRatio="xMaxYMax" ');
     }
 
@@ -221,14 +231,11 @@ module.exports = SvgLayer.extend({
    * Loads svg via XHR
    */
   load: function() {
-    xhr({
-      uri: this._url,
-      headers: {
-        "Content-Type": "image/svg+xml"
+    this.options.load(this._url, function(err, svg) {
+      if (!err) {
+        this.onLoad(svg);
       }
-    }, function (err, resp, svg) {
-      this.onLoad(svg);
-    }.bind(this))
+    }.bind(this));
   },
 
 
@@ -364,7 +371,7 @@ module.exports = SvgLayer.extend({
   /**
    * Scales projected point TO viewportized schematic ratio
    * @param  {L.Point} pt
-   * @return {L.Point}   
+   * @return {L.Point}
    */
   _scalePoint: function(pt) {
     return this._transformation.transform(

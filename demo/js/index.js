@@ -1,5 +1,7 @@
 var L = global.L || require('leaflet');
 var SvgOverlay = require('../../src/svgoverlay');
+var xhr = require('xhr');
+
 global.SvgLayer = require('../../src/svglayer');
 
 // create the slippy map
@@ -33,7 +35,18 @@ function onSelect() {
   console.log(this.value);
   if (svg) map.removeLayer(svg);
 
-  svg = global.svg = new SvgOverlay(this.value)
+  svg = global.svg = new SvgOverlay(this.value, {
+    load: function(url, callback) {
+      xhr({
+      uri: url,
+      headers: {
+        "Content-Type": "image/svg+xml"
+      }
+    }, function (err, resp, svg) {
+        callback(err, svg);
+      })
+    }
+  })
     .once('load', function() {
       map.fitBounds(svg.getBounds(), { animate: false });
     }).addTo(map);
