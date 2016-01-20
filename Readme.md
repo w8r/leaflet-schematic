@@ -21,6 +21,16 @@ several technical limitations and performance issues strike in:
   * `translate() + scale()` transform on `<g>` -_doesn't work_, use matrix
   * **horrible performance** - the more SVG nodes you have the slower it is
 
+### Approach
+
+* Use leaflet viewportized layer container to render part of the `SVG` with padding
+* scale `SVG` to fit the viewport and zoom levels
+* pack `SVG` contents into moving `<g>`
+* for IE - *hardcore* hacking:
+  * render `SVG` > base64 > `<canvas>`
+  * replace `SVG` with this canvas on drag and zoom
+  * also keep a hidden PNG rendered to overcome IE's performance drop on image 
+    scaling, somehow it works like a directive to switch the faulty smoothing off
 
 
 ## License
