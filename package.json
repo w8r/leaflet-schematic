@@ -1,6 +1,6 @@
 {
   "name": "leaflet-schematic",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Leaflet SVG viewer for non-cartographic high-detailed schematics",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "Base64": "^0.3.0",
-    "leaflet": "^0.7.7"
+    "leaflet": "^0.7.3"
   },
   "devDependencies": {
     "xhr": "^2.2.0",
@@ -22,5 +22,9 @@
     "faucet": "0.0.1",
     "tape": "^4.4.0",
     "watchify": "^3.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/w8r/leaflet-schematic.git"
   }
 }
