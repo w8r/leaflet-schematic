@@ -183,9 +183,7 @@ module.exports = L.Class.extend({
     var min = panePos.multiplyBy(-1)._subtract(size.multiplyBy(p)._round());
     var max = min.add(size.multiplyBy(1 + p * 2)._round());
 
-    console.log(min, max, new L.Bounds([min.x, min.y], [max.x, max.y]).toBBox());
     this._pathViewport = new L.Bounds([min.x, min.y], [max.x, max.y]);
-    console.log(this._pathViewport.toBBox());
   },
 
 
