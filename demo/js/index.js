@@ -14,16 +14,6 @@ var map = window.map = L.map('image-map', {
   inertia: !L.Browser.ie
 });
 
-var drawnItems = L.featureGroup().addTo(map);
-var drawControl = new L.Control.Draw({
-    edit: {
-        featureGroup: drawnItems
-    }
-});
-map.on('draw:created', function (e) {
-  map.addLayer(e.layer);
-});
-
 var svg = global.svg = null;
 
 map.on('click', function(e) {
@@ -38,13 +28,13 @@ function onSelect() {
   svg = global.svg = new SvgOverlay(this.value, {
     load: function(url, callback) {
       xhr({
-      uri: url,
-      headers: {
-        "Content-Type": "image/svg+xml"
-      }
-    }, function (err, resp, svg) {
+        uri: url,
+        headers: {
+          "Content-Type": "image/svg+xml"
+        }
+      }, function (err, resp, svg) {
         callback(err, svg);
-      })
+      });
     }
   })
     .once('load', function() {

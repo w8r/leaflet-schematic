@@ -1,12 +1,12 @@
 {
   "name": "leaflet-schematic",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Leaflet SVG viewer for non-cartographic high-detailed schematics",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
-    "start": "watchify -v -d -t [ babelify --presets [ es2015 ] ] demo/js/index.js -o demo/js/build.js & serve -p 3002",
-    "build": "browserify -v -d -t [ babelify --presets [ es2015 ] ] demo/js/index.js -o demo/js/build.js"
+    "start": "watchify -v -d -t [ babelify --presets [ es2015 ] ] -s L.SVGOverlay demo/js/index.js -o demo/js/build.js & serve -p 3002",
+    "build": "browserify -v -d -t [ babelify --presets [ es2015 ] ] -s L.SVGOverlay -u leaflet ./index.js -o dist/L.SVGOverlay.js"
   },
   "author": "Alexander Milevski <info@w8r.name>",
   "license": "MIT",

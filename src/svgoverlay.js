@@ -1,15 +1,15 @@
+var L        = require('leaflet');
 var SvgLayer = require('./svglayer');
 var b64      = require('Base64');
 
 require('./bounds');
 require('./utils');
 
-
-
-module.exports = SvgLayer.extend({
+var SVGOverlay = SvgLayer.extend({
 
   options: {
     padding: 0.25,
+    opacity: 1,
     useRaster: L.Browser.ie
     // load: function(url, callback) {}
   },
@@ -83,7 +83,7 @@ module.exports = SvgLayer.extend({
       this._url = svg;
 
       if (!options.load) {
-        throw new Error('SvgOverlay requires external request implementation. '+
+        throw new Error('SVGOverlay requires external request implementation. '+
           'You have to provide `load` function with the options');
       }
     }
@@ -159,7 +159,7 @@ module.exports = SvgLayer.extend({
       1, this._origin.x, 1, this._origin.y);
 
     this._group = L.Path.prototype._createElement('g');
-    if (L.Browser.ie) {
+    if (L.Browser.ie) { // innerHTML doesn't work for SVG in IE
       var child = svg.firstChild;
       do {
         this._group.appendChild(child);
@@ -212,6 +212,17 @@ module.exports = SvgLayer.extend({
 
 
   /**
+   * @param {Number} opacity
+   * @return {SVGLayer}
+   */
+  setOpacity: function (opacity) {
+    this.options.opacity = opacity;
+    this._updateOpacity();
+    return this;
+  },
+
+
+  /**
    * @param  {L.Bounds} bounds
    * @return {L.LatLngBounds}
    */
@@ -249,7 +260,7 @@ module.exports = SvgLayer.extend({
 
   /**
    * @param  {L.Map} map
-   * @return {SvgOverlay}
+   * @return {SVGOverlay}
    */
   onAdd: function(map) {
     SvgLayer.prototype.onAdd.call(this, map);
@@ -271,7 +282,7 @@ module.exports = SvgLayer.extend({
 
   /**
    * @param  {L.Map} map
-   * @return {SvgOverlay}
+   * @return {SVGOverlay}
    */
   onRemove: function(map) {
     SvgLayer.prototype.onRemove.call(this, map);
@@ -287,7 +298,7 @@ module.exports = SvgLayer.extend({
   /**
    * @param  {Function} callback
    * @param  {*=}       context
-   * @return {SvgOverlay}
+   * @return {SVGOverlay}
    */
   whenReady: function(callback, context) {
     if (this._bounds) {
@@ -445,6 +456,19 @@ module.exports = SvgLayer.extend({
   },
 
 
+  /**
+   * Sets conatiner opacity
+   */
+  _updateOpacity: function() {
+    L.DomUtil.setOpacity(this._container, this.options.opacity);
+  },
+
+
+  /**
+   * Redraw shifed canvas
+   * @param  {L.Point} topLeft
+   * @param  {L.Point} size
+   */
   _redrawCanvas: function(topLeft, size) {
     if (this._canvas) {
       var vp = this._getViewport();
@@ -506,3 +530,11 @@ module.exports = SvgLayer.extend({
   }
 
 });
+
+// export
+L.SVGOverlay = SVGOverlay;
+L.svgOverlay = function(svg, options) {
+  return new SVGOverlay(svg, options);
+};
+
+module.exports = SVGOverlay;

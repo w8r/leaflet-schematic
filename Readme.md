@@ -1,14 +1,36 @@
 # Leaflet schematics
 
 This is a set of tools to display and work with non-cartographic large
-high-detailed SVG schematics or blueprints. SVG is a perfect format for the 
-task - it's vector, relatively compact, has all the means to work with templates 
+high-detailed SVG schematics or blueprints. SVG is a perfect format for the
+task - it's vector, relatively compact, has all the means to work with templates
 and symbols, so it can really be a great representation and metadata container
 at the same time.
 
+### Usage
+
+```js
+var xhr = require('xhr');
+var SVGOverlay = require('leaflet-schematic');
+
+var map = L.map('map', { crs: L.CRS.Simple });
+L.svgOverlay('/path/to/svg.svg', {
+  load: function(url, callback) {
+    // your/your library xhr implementation
+    xhr({
+      uri: url,
+      headers: {
+        "Content-Type": "image/svg+xml"
+      }
+    }, function (err, resp, svg) {
+      callback(err, svg);
+    });
+  }
+}).addTo(map);
+```
+
 ### Problem
 
-The problem is that if you want to work with the SVG as with image overlay, 
+The problem is that if you want to work with the SVG as with image overlay,
 several technical limitations and performance issues strike in:
 
 * you cannot work on larger scales with the whole canvas because of the
@@ -29,9 +51,8 @@ several technical limitations and performance issues strike in:
 * for IE - *hardcore* hacking:
   * render `SVG` > base64 > `<canvas>`
   * replace `SVG` with this canvas on drag and zoom
-  * also keep a hidden PNG rendered to overcome IE's performance drop on image 
+  * also keep a hidden PNG rendered to overcome IE's performance drop on image
     scaling, somehow it works like a directive to switch the faulty smoothing off
-
 
 ## License
 

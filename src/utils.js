@@ -1,3 +1,4 @@
+var L = require('leaflet');
 
 // <use> tags are broken in IE in so many ways
 if ('SVGElementInstance' in global) {

@@ -1,4 +1,4 @@
-var L = global.L || require('leaflet');
+var L = require('leaflet');
 
 /**
  * @return {Array.<Number>}
