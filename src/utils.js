@@ -40,14 +40,39 @@ L.DomUtil.getSVGBBox = function(svg) {
   } else {
     var clone = svg.cloneNode(true);
     document.body.appendChild(clone);
-    bbox = clone.getBBox();
+    // bbox = clone.getBBox();
+    bbox = calcSVGViewBoxFromNodes(clone);
     document.body.removeChild(clone);
-    bbox = [bbox.x, bbox.y,
-      parseInt(svg.getAttribute('width')) || svg.offsetWidth || bbox.width,
-      parseInt(svg.getAttribute('height')) || svg.offsetHeight || bbox.height];
+    return bbox;
   }
   return [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]];
 };
+
+
+/**
+ * Simply brute force: takes all svg nodes, calculates bounding box
+ * @param  {SVGElement} svg
+ * @return {Array.<Number>}
+ */
+function calcSVGViewBoxFromNodes(svg) {
+  var bbox = [Infinity, Infinity, -Infinity, -Infinity];
+  var nodes = [].slice.call(svg.querySelectorAll('*'));
+  var min = Math.min, max = Math.max;
+
+  for (var i = 0, len = nodes.length; i < len; i++) {
+    var node = nodes[i];
+    if (node.getBBox) {
+      node = node.getBBox();
+
+      bbox[0] = min(node.x, bbox[0]);
+      bbox[1] = min(node.y, bbox[1]);
+
+      bbox[2] = max(node.x + node.width, bbox[2]);
+      bbox[3] = max(node.y + node.height, bbox[3]);
+    }
+  }
+  return bbox;
+}
 
 
 /**

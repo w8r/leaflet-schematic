@@ -134,8 +134,7 @@ var SVGOverlay = SvgLayer.extend({
 
     if (svg.getAttribute('viewBox') === null) {
       this._rawData = this._rawData.replace('<svg',
-        '<svg viewBox="' + bbox.join(' ') +
-        '" preserveAspectRatio="xMaxYMax" ');
+        '<svg viewBox="' + bbox.join(' ') + '"');
     }
 
     // calculate the edges of the image, in coordinate space
