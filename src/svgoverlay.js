@@ -155,6 +155,7 @@ var SVGOverlay = SvgLayer.extend({
 
     this._size   = size;
     this._origin = this._map.project(this._bounds.getCenter(), minZoom);
+    this._viewBoxOffset = L.point(this._bbox[0], this._bbox[1]);
     this._transformation = new L.Transformation(
       1, this._origin.x, 1, this._origin.y);
 
@@ -517,6 +518,7 @@ var SVGOverlay = SvgLayer.extend({
    */
   _reset: function () {
     var image   = this._group;
+    // scale is scale factor, zoom is zoom level
     var scale   = Math.pow(2, this._map.getZoom() - 1) * this._ratio;
     var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
     var size    = this.getOriginalSize().multiplyBy(scale);
@@ -533,10 +535,10 @@ var SVGOverlay = SvgLayer.extend({
       L.DomUtil.setPosition(this._canvas, vpMin);
     }
 
+    // compensate viewbox dismissal with a shift here
     this._group.setAttribute('transform',
       L.DomUtil.getMatrixString(
-        topLeft.subtract(L.point(this._bbox[0], this._bbox[1])
-          .multiplyBy(scale)), scale));
+        topLeft.subtract(this._viewBoxOffset.multiplyBy(scale)), scale));
   }
 
 });
