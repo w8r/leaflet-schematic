@@ -1,6 +1,6 @@
-var L = global.L || require('leaflet');
-var SvgOverlay = require('../../src/svgoverlay');
-var xhr = require('xhr');
+var L = require('leaflet');
+var SvgOverlay = global.SvgOverlay = require('../../src/svgoverlay');
+var xhr = global.xhr = require('xhr');
 
 global.SvgLayer = require('../../src/svglayer');
 
@@ -22,7 +22,6 @@ map.on('click', function(e) {
 
 var select = document.querySelector('#select-schematic');
 function onSelect() {
-  console.log(this.value);
   if (svg) map.removeLayer(svg);
 
   svg = global.svg = new SvgOverlay(this.value, {

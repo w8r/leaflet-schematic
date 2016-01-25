@@ -10,7 +10,8 @@ var SVGOverlay = SvgLayer.extend({
   options: {
     padding: 0.25,
     opacity: 1,
-    useRaster: L.Browser.ie
+    useRaster: L.Browser.ie,
+    adjustToScreen: true
     // load: function(url, callback) {}
   },
 
@@ -132,7 +133,6 @@ var SVGOverlay = SvgLayer.extend({
     var minZoom = this._map.getMinZoom();
 
     if (svg.getAttribute('viewBox') === null) {
-      //console.log('missing', bbox);
       this._rawData = this._rawData.replace('<svg',
         '<svg viewBox="' + bbox.join(' ') +
         '" preserveAspectRatio="xMaxYMax" ');
@@ -147,7 +147,7 @@ var SVGOverlay = SvgLayer.extend({
     var size = this.getOriginalSize();
     var mapSize = this._map.getSize();
 
-    if (size.y !== mapSize.y) {
+    if (size.y !== mapSize.y && this.options.adjustToScreen) {
       var ratio = Math.min(mapSize.x / size.x, mapSize.y / size.y);
       this._bounds = this._bounds.scale(ratio);
       this._ratio = ratio;
@@ -189,6 +189,14 @@ var SVGOverlay = SvgLayer.extend({
    */
   getBounds: function() {
     return this._bounds;
+  },
+
+
+  /**
+   * @return {Number}
+   */
+  getRatio: function() {
+    return this._ratio;
   },
 
 
@@ -512,21 +520,23 @@ var SVGOverlay = SvgLayer.extend({
     var scale   = Math.pow(2, this._map.getZoom() - 1) * this._ratio;
     var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
     var size    = this.getOriginalSize().multiplyBy(scale);
+    var vpMin   = this._getViewport().min;
 
     if (this._raster) {
-      //console.log(size, scale);
       this._raster.style.width = size.x + 'px';
       this._raster.style.height = size.y + 'px';
-      L.DomUtil.setPosition(this._raster, this._getViewport().min);
+      L.DomUtil.setPosition(this._raster, vpMin);
     }
 
     if (this._canvas) {
       this._redrawCanvas(topLeft, size);
-      L.DomUtil.setPosition(this._canvas, this._getViewport().min);
+      L.DomUtil.setPosition(this._canvas, vpMin);
     }
 
     this._group.setAttribute('transform',
-      L.DomUtil.getMatrixString(topLeft, scale));
+      L.DomUtil.getMatrixString(
+        topLeft.subtract(L.point(this._bbox[0], this._bbox[1])
+          .multiplyBy(scale)), scale));
   }
 
 });
