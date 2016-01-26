@@ -6,7 +6,7 @@ global.SvgLayer = require('../../src/svglayer');
 
 // create the slippy map
 var map = window.map = L.map('image-map', {
-  minZoom: 1,
+  minZoom: 0,
   maxZoom: 20,
   center: [0, 0],
   zoom: 1,

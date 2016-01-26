@@ -518,7 +518,7 @@ var SVGOverlay = SvgLayer.extend({
   _reset: function () {
     var image   = this._group;
     // scale is scale factor, zoom is zoom level
-    var scale   = Math.pow(2, this._map.getZoom() - 1) * this._ratio;
+    var scale   = Math.pow(2, this._map.getZoom()) * this._ratio;
     var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
     var size    = this.getOriginalSize().multiplyBy(scale);
     var vpMin   = this._getViewport().min;
