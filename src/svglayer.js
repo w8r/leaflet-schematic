@@ -105,11 +105,11 @@ module.exports = L.Class.extend({
    * @return {SvgLayer}
    */
   bringToFront: function () {
-    var root = this._pathRoot.parentNode,
-        path = this._pathRoot;
+    var root = this._container.parentNode;
+    var container = this._container;
 
-    if (path && root.lastChild !== path) {
-      root.appendChild(path);
+    if (container && root.lastChild !== container) {
+      root.appendChild(container);
     }
     return this;
   },
@@ -119,12 +119,12 @@ module.exports = L.Class.extend({
    * @return {SvgLayer}
    */
   bringToBack: function () {
-    var root = this._pathRoot.parentNode;
-    var path = this._pathRoot;
+    var root = this._container.parentNode;
+    var container = this._container;
     var first = root.firstChild;
 
-    if (path && first !== path) {
-      root.insertBefore(path, first);
+    if (container && first !== container) {
+      root.insertBefore(container, first);
     }
     return this;
   },
