@@ -9,7 +9,6 @@ var SVGOverlay = SvgLayer.extend({
 
   options: {
     padding: 0.25,
-    opacity: 1,
     useRaster: L.Browser.ie,
     adjustToScreen: true
     // load: function(url, callback) {}
@@ -216,17 +215,6 @@ var SVGOverlay = SvgLayer.extend({
    */
   unprojectPoint: function(pt) {
     return this._map.unproject(this._scalePoint(pt), this._map.getMinZoom());
-  },
-
-
-  /**
-   * @param {Number} opacity
-   * @return {SVGLayer}
-   */
-  setOpacity: function (opacity) {
-    this.options.opacity = opacity;
-    this._updateOpacity();
-    return this;
   },
 
 
@@ -461,14 +449,6 @@ var SVGOverlay = SvgLayer.extend({
        this.toImage();
        this._hideRaster();
     }
-  },
-
-
-  /**
-   * Sets conatiner opacity
-   */
-  _updateOpacity: function() {
-    L.DomUtil.setOpacity(this._container, this.options.opacity);
   },
 
 

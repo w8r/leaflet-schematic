@@ -6,7 +6,8 @@ module.exports = L.Class.extend({
 
   options: {
     opacity: 1,
-    padding: L.Path.CLIP_PADDING
+    padding: L.Path.CLIP_PADDING,
+    zIndex: 1
   },
 
   /**
@@ -130,6 +131,25 @@ module.exports = L.Class.extend({
 
 
   /**
+   * @param {Number} opacity
+   * @return {SVGLayer}
+   */
+  setOpacity: function (opacity) {
+    this.options.opacity = opacity;
+    this._updateOpacity();
+    return this;
+  },
+
+
+  setZIndex: function (zIndex) {
+    this.options.zIndex = zIndex;
+    this._updateZIndex();
+
+    return this;
+  },
+
+
+  /**
    * Create svg root
    */
   _createRoot: function() {
@@ -160,6 +180,27 @@ module.exports = L.Class.extend({
 
       this._map.on('moveend', this._updateSvgViewport, this);
       this._updateSvgViewport();
+
+      this._updateOpacity();
+      this._updateZIndex();
+    }
+  },
+
+
+  /**
+   * Sets conatiner opacity
+   */
+  _updateOpacity: function() {
+    L.DomUtil.setOpacity(this._container, this.options.opacity);
+  },
+
+
+  /**
+   * Sets container zIndex
+   */
+  _updateZIndex: function () {
+    if (this._container && this.options.zIndex !== undefined) {
+      this._container.style.zIndex = this.options.zIndex;
     }
   },
 
