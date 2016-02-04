@@ -223,8 +223,8 @@ var SVGOverlay = SvgLayer.extend({
    * @return {L.LatLngBounds}
    */
   unprojectBounds: function(bounds) {
-    var sw = this.pointToMapCoord(bounds.min);
-    var ne = this.pointToMapCoord(bounds.max);
+    var sw = this.unprojectPoint(bounds.min);
+    var ne = this.unprojectPoint(bounds.max);
     return L.latLngBounds(sw, ne);
   },
 
@@ -236,8 +236,8 @@ var SVGOverlay = SvgLayer.extend({
    */
   projectBounds: function(bounds) {
     return new L.Bounds(
-      this.mapCoordToPoint(bounds.getSouthWest()),
-      this.mapCoordToPoint(bounds.getNorthEast())
+      this.projectPoint(bounds.getSouthWest()),
+      this.projectPoint(bounds.getNorthEast())
     );
   },
 
