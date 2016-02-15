@@ -7,7 +7,8 @@ module.exports = L.Class.extend({
   options: {
     opacity: 1,
     padding: L.Path.CLIP_PADDING,
-    zIndex: 1
+    zIndex: 1,
+    usePathContainer: false
   },
 
   /**
@@ -87,6 +88,7 @@ module.exports = L.Class.extend({
 
     this._map.off('moveend', this._updateSvgViewport, this);
     this._map.getPanes().overlayPane.removeChild(this._container);
+
     return this;
   },
 
@@ -111,6 +113,7 @@ module.exports = L.Class.extend({
     if (container && root.lastChild !== container) {
       root.appendChild(container);
     }
+
     return this;
   },
 
@@ -141,6 +144,10 @@ module.exports = L.Class.extend({
   },
 
 
+  /**
+   * @param {Number} zIndex
+   * @return {SVGLayet}
+   */
   setZIndex: function (zIndex) {
     this.options.zIndex = zIndex;
     this._updateZIndex();
@@ -153,9 +160,16 @@ module.exports = L.Class.extend({
    * Create svg root
    */
   _createRoot: function() {
-    this._pathRoot = L.Path.prototype._createElement('svg');
-    this._container = L.DomUtil.create('div', 'leaflet-image-layer');
-    this._container.appendChild(this._pathRoot);
+    this._container = L.DomUtil.create('div', 'leaflet-schematic-layer');
+    if (this.options.usePathContainer) {
+      if (!this._map._pathRoot) {
+        this._map._initPathRoot();
+      }
+      this._pathRoot = this._map._pathRoot;
+    } else {
+      this._pathRoot = L.Path.prototype._createElement('svg');
+      this._container.appendChild(this._pathRoot);
+    }
   },
 
 
@@ -164,8 +178,9 @@ module.exports = L.Class.extend({
    */
   _initPathRoot: function () {
     if (!this._pathRoot) {
+      var pane = this._map.getPanes().overlayPane;
       this._createRoot();
-      this._map.getPanes().overlayPane.appendChild(this._container);
+      pane.insertBefore(this._container, pane.firstChild);
 
       if (this._map.options.zoomAnimation && L.Browser.any3d) {
         L.DomUtil.addClass(this._pathRoot, 'leaflet-zoom-animated');
@@ -232,14 +247,16 @@ module.exports = L.Class.extend({
    * @param  {ZoomEvent} e
    */
   _animatePathZoom: function (e) {
-    var scale = this._map.getZoomScale(e.zoom);
-    var offset = this._map
-      ._getCenterOffset(e.center)
-      ._multiplyBy(-scale)
-      ._add(this._getViewport().min);
+    if (!this.options.usePathContainer) {
+      var scale = this._map.getZoomScale(e.zoom);
+      var offset = this._map
+        ._getCenterOffset(e.center)
+        ._multiplyBy(-scale)
+        ._add(this._getViewport().min);
 
-    this._pathRoot.style[L.DomUtil.TRANSFORM] =
-      L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ') ';
+      this._pathRoot.style[L.DomUtil.TRANSFORM] =
+        L.DomUtil.getTranslateString(offset) + ' scale(' + scale + ') ';
+    }
 
     this._pathZooming = true;
   },
@@ -282,12 +299,14 @@ module.exports = L.Class.extend({
       this._container.removeChild(root);
     }
 
-    L.DomUtil.setPosition(this._pathRoot, min);
-    root.setAttribute('width', width);
-    root.setAttribute('height', height);
-    root.setAttribute('viewBox', [min.x, min.y, width, height].join(' '));
+    if (!this.options.usePathContainer) {
+      L.DomUtil.setPosition(this._pathRoot, min);
+      root.setAttribute('width', width);
+      root.setAttribute('height', height);
+      root.setAttribute('viewBox', [min.x, min.y, width, height].join(' '));
+    }
 
-    if (L.Browser.mobileWebkit) {
+    if (L.Browser.mobileWebkit && !this.options.usePathContainer) {
       this._container.appendChild(root);
     }
   }

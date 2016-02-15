@@ -18,3 +18,13 @@ body, html, #image-map {
 }
 
 
+.svg-overlay use {
+  stroke: #f00;
+  cursor: pointer;
+  pointer-events: bounding-box;
+}
+
+.svg-overlay use:hover {
+  stroke-width: 3;
+}
+
