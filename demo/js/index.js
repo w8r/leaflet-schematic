@@ -25,6 +25,8 @@ function onSelect() {
   if (svg) map.removeLayer(svg);
 
   svg = global.svg = new SvgOverlay(this.value, {
+    usePathContainer: true,
+    useRaster: true,
     load: function(url, callback) {
       xhr({
         uri: url,

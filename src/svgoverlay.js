@@ -158,6 +158,8 @@ var SVGOverlay = SvgLayer.extend({
       1, this._origin.x, 1, this._origin.y);
 
     this._group = L.Path.prototype._createElement('g');
+    L.DomUtil.addClass(this._group, 'svg-overlay');
+
     if (L.Browser.ie) { // innerHTML doesn't work for SVG in IE
       var child = svg.firstChild;
       do {
@@ -281,6 +283,7 @@ var SVGOverlay = SvgLayer.extend({
    * @return {SVGOverlay}
    */
   onRemove: function(map) {
+    this._group.parentNode.removeChild(this._group);
     SvgLayer.prototype.onRemove.call(this, map);
     map
       .off('zoomend', this._onMapZoomEnd, this)
@@ -357,6 +360,28 @@ var SVGOverlay = SvgLayer.extend({
     //console.timeEnd('base64');
 
     return 'data:image/svg+xml;base64,' + base64;
+  },
+
+
+  /**
+   * @inheritDoc
+   */
+  bringToFront: function() {
+    if (this.options.usePathContainer) {
+      this._group.parentNode.appendChild(this._group);
+    }
+    return SvgLayer.prototype.bringToFront.call(this);
+  },
+
+
+  /**
+   * @inheritDoc
+   */
+  bringToBack: function() {
+    if (this.options.usePathContainer) {
+      this._pathRoot.insertBefore(this._group, this._pathRoot.firstChild);
+    }
+    return SvgLayer.prototype.bringToBack.call(this);
   },
 
 
