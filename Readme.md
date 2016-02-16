@@ -54,6 +54,11 @@ several technical limitations and performance issues strike in:
   * also keep a hidden PNG rendered to overcome IE's performance drop on image
     scaling, somehow it works like a directive to switch the faulty smoothing off
 
+### Know issues
+* SVGs without correctly provided `viewBox` work really badly and I cannot yet 
+  figure out why. I'm trying to calculate viewbox from the contents, but it
+  still looks broken in rendered canvas
+
 ## License
 
 MIT
