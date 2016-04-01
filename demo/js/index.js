@@ -26,7 +26,7 @@ function onSelect() {
 
   svg = global.svg = new SvgOverlay(this.value, {
     usePathContainer: true,
-    useRaster: true,
+    //useRaster: true,
     load: function(url, callback) {
       xhr({
         uri: url,

@@ -1,8 +1,6 @@
 var L = require('leaflet');
 
-module.exports = L.Class.extend({
-
-  includes: L.Mixin.Events,
+module.exports = L.Layer.extend({
 
   options: {
     opacity: 1,
@@ -162,12 +160,9 @@ module.exports = L.Class.extend({
   _createRoot: function() {
     this._container = L.DomUtil.create('div', 'leaflet-schematic-layer');
     if (this.options.usePathContainer) {
-      if (!this._map._pathRoot) {
-        this._map._initPathRoot();
-      }
-      this._pathRoot = this._map._pathRoot;
+      this._pathRoot = this._map.getRenderer(this)._container;
     } else {
-      this._pathRoot = L.Path.prototype._createElement('svg');
+      this._pathRoot = L.SVG.create('svg');
       this._container.appendChild(this._pathRoot);
     }
   },
@@ -312,3 +307,4 @@ module.exports = L.Class.extend({
   }
 
 });
+
