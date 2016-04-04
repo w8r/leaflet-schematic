@@ -1,8 +1,8 @@
 var L = require('leaflet');
-var SvgOverlay = global.SvgOverlay = require('../../src/svgoverlay3');
+var SvgOverlay = global.SvgOverlay = require('../../src/svgoverlay');
 var xhr = global.xhr = require('xhr');
 
-global.SvgLayer = require('../../src/svglayer');
+//global.SvgLayer = require('../../src/svglayer');
 
 // create the slippy map
 var map = window.map = L.map('image-map', {
@@ -11,15 +11,20 @@ var map = window.map = L.map('image-map', {
   center: [0, 0],
   zoom: 1,
   crs: L.Util.extend({}, L.CRS.Simple, {
-    transformation: new L.Transformation(1, 0, -1, 0)
+    //transformation: new L.Transformation(1/0.03632478632478633, 0, -1/0.03632478632478633, 0),
+    transformation: new L.Transformation(2, 0, -2, 0),
+    //bounds: L.bounds([-200*180, -200*90], [200*180, 200*90]),
+    infinite: false
   }),
   inertia: !L.Browser.ie
 });
 
+L.SVG.prototype.options.padding = 0.5;
+
 var svg = global.svg = null;
 
-map.on('click', function(e) {
-  console.log('map', e.originalEvent.target);
+map.on('click', function(evt) {
+  console.log('map', evt.originalEvent.target, evt.latlng, map.project(evt.latlng, map.getMinZoom() + 1));
 });
 
 var select = document.querySelector('#select-schematic');
@@ -42,6 +47,9 @@ function onSelect() {
   })
     .once('load', function() {
       map.fitBounds(svg.getBounds(), { animate: false });
+      // global.rect = L.rectangle(svg.getBounds().pad(-0.25), {
+      //   renderer: svg._renderer
+      // }).addTo(map);
     }).addTo(map);
 }
 

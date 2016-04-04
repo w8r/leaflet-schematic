@@ -1,23 +1,21 @@
-var L        = require('leaflet');
-var SvgLayer = require('./svglayer');
 var b64      = require('Base64');
+var Renderer = require('./schematic_renderer');
 
 require('./bounds');
 require('./utils');
 
-var SVGOverlay = SvgLayer.extend({
+module.exports = L.Rectangle.extend({
 
   options: {
-    padding: 0.25,
-    useRaster: L.Browser.ie,
-    adjustToScreen: true
-    // load: function(url, callback) {}
+    opacity: 0.4,
+    fillOpacity: 0.1,
+    weight: 1,
+    adjustToScreen: false,
+    zoomOffset: 1
   },
-
 
   /**
    * @constructor
-   * @extends {SvgLayer}
    * @param  {String}         svg     SVG string or URL
    * @param  {L.LatLngBounds} bounds
    * @param  {Object=}        options
@@ -33,6 +31,11 @@ var SVGOverlay = SvgLayer.extend({
       options = bounds;
       bounds = null;
     }
+
+    options.renderer = new Renderer({
+      schematic: this
+      // padding: options.padding || this.options.padding || 0.25
+    });
 
     /**
      * @type {L.LatLngBounds}
@@ -105,19 +108,37 @@ var SVGOverlay = SvgLayer.extend({
      */
     this._canvas = null;
 
-    L.Util.setOptions(this, options);
+
+    L.Rectangle.prototype.initialize.call(
+      this, L.latLngBounds([0,0], [0,0]), options);
+  },
+
+
+  onAdd: function(map) {
+    L.Rectangle.prototype.onAdd.call(this, map);
+    if (!this._svg) {
+      this.load();
+    } else {
+      this.onLoad(this._svg);
+    }
+  },
+
+
+  onRemove: function(map) {
+    this._group.parentNode.removeChild(this._group);
+    L.Rectangle.prototype.onRemove.call(this, map);
   },
 
 
   /**
-   * @return {L.Point}
+   * Loads svg via XHR
    */
-  getOriginalSize: function() {
-    var bbox = this._bbox;
-    return new L.Point(
-      Math.abs(bbox[0] - bbox[2]),
-      Math.abs(bbox[1] - bbox[3])
-    );
+  load: function() {
+    this.options.load(this._url, function(err, svg) {
+      if (!err) {
+        this.onLoad(svg);
+      }
+    }.bind(this));
   },
 
 
@@ -129,12 +150,14 @@ var SVGOverlay = SvgLayer.extend({
     this._rawData = svg;
     svg = L.DomUtil.getSVGContainer(svg);
     var bbox = this._bbox = L.DomUtil.getSVGBBox(svg);
-    var minZoom = this._map.getMinZoom();
+    var minZoom = this._map.getMinZoom() + this.options.zoomOffset;
 
     if (svg.getAttribute('viewBox') === null) {
       this._rawData = this._rawData.replace('<svg',
         '<svg viewBox="' + bbox.join(' ') + '"');
     }
+
+    // TODO: calculate zoom offset here to fit the screen
 
     // calculate the edges of the image, in coordinate space
     this._bounds = new L.LatLngBounds(
@@ -146,9 +169,9 @@ var SVGOverlay = SvgLayer.extend({
     var mapSize = this._map.getSize();
 
     if (size.y !== mapSize.y && this.options.adjustToScreen) {
-      var ratio = Math.min(mapSize.x / size.x, mapSize.y / size.y);
+      var ratio    = Math.min(mapSize.x / size.x, mapSize.y / size.y);
       this._bounds = this._bounds.scale(ratio);
-      this._ratio = ratio;
+      this._ratio  = ratio;
     }
 
     this._size   = size;
@@ -169,393 +192,39 @@ var SVGOverlay = SvgLayer.extend({
     } else {
       this._group.innerHTML = svg.innerHTML;
     }
-    this._pathRoot.appendChild(this._group);
+    this._renderer._container.insertBefore(
+      this._group, this._renderer._container.firstChild);
 
     this.fire('load');
-    this._onMapZoomEnd();
+    this._latlngs = this._boundsToLatLngs(this._bounds);
     this._reset();
   },
 
 
   /**
-   * @return {SVGElement}
-   */
-  getDocument: function() {
-    return this._group;
-  },
-
-
-  /**
-   * @return {L.LatLngBounds}
-   */
-  getBounds: function() {
-    return this._bounds;
-  },
-
-
-  /**
-   * @return {Number}
-   */
-  getRatio: function() {
-    return this._ratio;
-  },
-
-
-  /**
-   * Transform map coord to schematic point
-   * @param  {L.LatLng} coord
    * @return {L.Point}
    */
-  projectPoint: function(coord) {
-    return this._unscalePoint(this._map.project(coord, this._map.getMinZoom()));
-  },
-
-
-  /**
-   * @param  {L.Point} pt
-   * @return {L.LatLng}
-   */
-  unprojectPoint: function(pt) {
-    return this._map.unproject(this._scalePoint(pt), this._map.getMinZoom());
-  },
-
-
-  /**
-   * @param  {L.Bounds} bounds
-   * @return {L.LatLngBounds}
-   */
-  unprojectBounds: function(bounds) {
-    var sw = this.unprojectPoint(bounds.min);
-    var ne = this.unprojectPoint(bounds.max);
-    return L.latLngBounds(sw, ne);
-  },
-
-
-  /**
-   * Transform layerBounds to schematic bbox
-   * @param  {L.LatLngBounds} bounds
-   * @return {L.Bounds}
-   */
-  projectBounds: function(bounds) {
-    return new L.Bounds(
-      this.projectPoint(bounds.getSouthWest()),
-      this.projectPoint(bounds.getNorthEast())
+  getOriginalSize: function() {
+    var bbox = this._bbox;
+    return new L.Point(
+      Math.abs(bbox[0] - bbox[2]),
+      Math.abs(bbox[1] - bbox[3])
     );
   },
 
 
-  /**
-   * Loads svg via XHR
-   */
-  load: function() {
-    this.options.load(this._url, function(err, svg) {
-      if (!err) {
-        this.onLoad(svg);
-      }
-    }.bind(this));
-  },
+  _updatePath: function() {
+    L.Rectangle.prototype._updatePath.call(this);
+    if (this._group) {
+      var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
+      // scale is scale factor, zoom is zoom level
+      var scale   = this._map.options.crs.scale(
+        this._map.getZoom() - this.options.zoomOffset) * this._ratio;
 
-
-  beforeAdd: function (map) {
-    this._renderer = map.getRenderer(this);
-  },
-
-
-  /**
-   * @param  {L.Map} map
-   * @return {SVGOverlay}
-   */
-  onAdd: function(map) {
-    SvgLayer.prototype.onAdd.call(this, map);
-
-    map
-      .on('zoomend', this._onMapZoomEnd, this)
-      .on('dragstart', this._onPreDrag, this)
-      .on('dragend', this._onDragEnd, this)
-      .on('viereset moveend', this._reset, this);
-
-    if (!this._svg) {
-      this.load();
-    } else {
-      this.onLoad(this._svg);
+      // compensate viewbox dismissal with a shift here
+      this._group.setAttribute('transform',
+         L.DomUtil.getMatrixString(topLeft, scale));
     }
-    return this;
-  },
-
-
-  /**
-   * @param  {L.Map} map
-   * @return {SVGOverlay}
-   */
-  onRemove: function(map) {
-    this._group.parentNode.removeChild(this._group);
-    SvgLayer.prototype.onRemove.call(this, map);
-    map
-      .off('zoomend', this._onMapZoomEnd, this)
-      .off('dragstart', this._onPreDrag, this)
-      .off('dragend', this._onDragEnd, this)
-      .off('viereset moveend', this._reset, this);
-    return this;
-  },
-
-
-  /**
-   * @param  {Function} callback
-   * @param  {*=}       context
-   * @return {SVGOverlay}
-   */
-  whenReady: function(callback, context) {
-    if (this._bounds) {
-      callback.call(context);
-    } else {
-      this.once('load', callback, context);
-    }
-    return this;
-  },
-
-
-  /**
-   * Rasterizes the schematic
-   * @return {Schematic}
-   */
-  toImage: function() {
-    var img = new Image();
-    // this doesn't work in IE, force size
-    // img.style.height = img.style.width = '100%';
-    img.style.width = this._size.x + 'px';
-    img.style.height = this._size.y + 'px';
-    img.src = this.toBase64();
-
-    var canvas = this._canvas || L.DomUtil.create('canvas', 'schematic-canvas');
-    var ctx = canvas.getContext('2d');
-
-    L.DomEvent.on(img, 'load', function () {
-      var naturalSize = L.point(img.offsetWidth, img.offsetHeight);
-      //console.log('natural', naturalSize);
-      this._reset();
-    }, this);
-
-    if (!this._canvas) {
-      this._canvas = canvas;
-      this._container.insertBefore(canvas, this._container.firstChild);
-    }
-    img.style.opacity = 0;
-
-    if (this._raster) {
-      this._raster.parentNode.removeChild(this._raster);
-      this._raster = null;
-    }
-
-    L.DomUtil.addClass(img, 'schematic-image');
-    this._container.appendChild(img);
-    this._raster = img;
-    return this;
-  },
-
-
-  /**
-   * Convert SVG data to base64 for rasterization
-   * @return {String} base64 encoded SVG
-   */
-  toBase64: function() {
-    //console.time('base64');
-    var base64 = this._base64encoded ||
-      b64.btoa(unescape(encodeURIComponent(this._rawData)));
-    this._base64encoded = base64;
-    //console.timeEnd('base64');
-
-    return 'data:image/svg+xml;base64,' + base64;
-  },
-
-
-  /**
-   * @inheritDoc
-   */
-  bringToFront: function() {
-    if (this.options.usePathContainer) {
-      this._group.parentNode.appendChild(this._group);
-    }
-    return SvgLayer.prototype.bringToFront.call(this);
-  },
-
-
-  /**
-   * @inheritDoc
-   */
-  bringToBack: function() {
-    if (this.options.usePathContainer) {
-      this._pathRoot.insertBefore(this._group, this._pathRoot.firstChild);
-    }
-    return SvgLayer.prototype.bringToBack.call(this);
-  },
-
-
-  /**
-   * We need to redraw on zoom end
-   */
-  _endPathZoom: function() {
-    this._reset();
-    SvgLayer.prototype._endPathZoom.call(this);
-  },
-
-
-  /**
-   * Scales projected point FROM viewportized schematic ratio
-   * @param  {L.Point} pt
-   * @return {L.Point}
-   */
-  _unscalePoint: function(pt) {
-    return this._transformation.transform(
-      this._transformation.untransform(pt).divideBy(this._ratio));
-    // same as above, but not using transform matrix
-    //return pt.subtract(this._origin)
-    //  .multiplyBy(1/ this._ratio).add(this._origin);
-  },
-
-
-  /**
-   * Scales projected point TO viewportized schematic ratio
-   * @param  {L.Point} pt
-   * @return {L.Point}
-   */
-  _scalePoint: function(pt) {
-    return this._transformation.transform(
-      this._transformation.untransform(pt).multiplyBy(this._ratio)
-    );
-    // equals to
-    // return pt.subtract(this._origin)
-    //   .multiplyBy(this._ratio).add(this._origin);
-  },
-
-
-  /**
-   * Toggle canvas instead of SVG when dragging
-   */
-  _showRaster: function () {
-    if (this._canvas) {
-      this._canvas.style.display   = 'block';
-      this._pathRoot.style.display = 'none';
-    }
-  },
-
-
-  /**
-   * Swap back to SVG
-   */
-  _hideRaster: function () {
-    if (this._canvas) {
-      this._canvas.style.display   = 'none';
-      this._pathRoot.style.display = 'block';
-    }
-  },
-
-
-  /**
-   * IE-only
-   * Replace SVG with canvas before drag
-   */
-  _onPreDrag: function() {
-    if (this.options.useRaster) {
-      this._showRaster();
-    }
-  },
-
-
-  /**
-   * Drag end: put SVG back in IE
-   */
-  _onDragEnd: function() {
-    if (this.options.useRaster) {
-      this._hideRaster();
-    }
-  },
-
-
-  /**
-   * Re-render canvas on zoomend
-   */
-  _onMapZoomEnd: function() {
-    if (this.options.useRaster) {
-       this.toImage();
-       this._hideRaster();
-    }
-  },
-
-
-  /**
-   * Redraw shifed canvas
-   * @param  {L.Point} topLeft
-   * @param  {L.Point} size
-   */
-  _redrawCanvas: function(topLeft, size) {
-    if (this._canvas) {
-      var vp = this._getViewport();
-      var canvas = this._canvas;
-      var min = vp.min;
-      var max = vp.max;
-      var width = max.x - min.x;
-      var height = max.y - min.y;
-
-      var pos = topLeft.subtract(min);
-
-      canvas.width = width;
-      canvas.height = height;
-
-      canvas.style.width = width + 'px';
-      canvas.style.height = height + 'px';
-
-      // console.log(width, height, size.x, size.y);
-
-      var ctx = canvas.getContext('2d')
-      L.Util.requestAnimFrame(function() {
-        ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(this._raster, pos.x, pos.y, size.x, size.y);
-
-        // ctx.rect(pos.x, pos.y, size.x, size.y);
-        // ctx.strokeStyle = 'red';
-        // ctx.lineWidth = 0.1;
-        // ctx.stroke();
-      }, this);
-
-      //this._pathRoot.style.opacity = 0.5;
-    }
-  },
-
-
-  /**
-   * Redraw - compensate the position and scale
-   */
-  _reset: function () {
-    var image   = this._group;
-    // scale is scale factor, zoom is zoom level
-    var scale   = Math.pow(2, this._map.getZoom()) * this._ratio;
-    var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
-    var size    = this.getOriginalSize().multiplyBy(scale);
-    var vpMin   = this._getViewport().min;
-
-    if (this._raster) {
-      this._raster.style.width = size.x + 'px';
-      this._raster.style.height = size.y + 'px';
-      L.DomUtil.setPosition(this._raster, vpMin);
-    }
-
-    if (this._canvas) {
-      this._redrawCanvas(topLeft, size);
-      L.DomUtil.setPosition(this._canvas, vpMin);
-    }
-
-    // compensate viewbox dismissal with a shift here
-    this._group.setAttribute('transform',
-      L.DomUtil.getMatrixString(
-        topLeft.subtract(this._viewBoxOffset.multiplyBy(scale)), scale));
   }
 
 });
-
-// export
-L.SVGOverlay = SVGOverlay;
-L.svgOverlay = function(svg, options) {
-  return new SVGOverlay(svg, options);
-};
-
-module.exports = SVGOverlay;
