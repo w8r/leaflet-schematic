@@ -5,6 +5,13 @@ require('./utils');
 
 module.exports = L.Rectangle.extend({
 
+  options: {
+    opacity: 0.4,
+    fillOpacity: 0.2,
+    weight: 1,
+    adjustToScreen: true
+  },
+
   /**
    * @constructor
    * @param  {String}         svg     SVG string or URL
@@ -108,6 +115,12 @@ module.exports = L.Rectangle.extend({
   },
 
 
+  onRemove: function(map) {
+    this._group.parentNode.removeChild(this._group);
+    L.Rectangle.prototype.onRemove.call(this, map);
+  },
+
+
   /**
    * Loads svg via XHR
    */
@@ -144,10 +157,10 @@ module.exports = L.Rectangle.extend({
     var size = this.getOriginalSize();
     var mapSize = this._map.getSize();
 
-    if (false && size.y !== mapSize.y && this.options.adjustToScreen) {
-      var ratio = 1; // Math.min(mapSize.x / size.x, mapSize.y / size.y);
+    if (size.y !== mapSize.y && this.options.adjustToScreen) {
+      var ratio    = Math.min(mapSize.x / size.x, mapSize.y / size.y);
       this._bounds = this._bounds.scale(ratio);
-      this._ratio = ratio;
+      this._ratio  = ratio;
     }
 
     this._size   = size;
@@ -196,6 +209,7 @@ module.exports = L.Rectangle.extend({
       var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
       //var image   = this._group;
       // scale is scale factor, zoom is zoom level
+      console.log(this._ratio);
       var scale   = this._map.options.crs.scale(this._map.getZoom()) * this._ratio;
       //var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
       //var size    = this.getOriginalSize().multiplyBy(scale);

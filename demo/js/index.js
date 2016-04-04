@@ -10,7 +10,9 @@ var map = window.map = L.map('image-map', {
   maxZoom: 20,
   center: [0, 0],
   zoom: 1,
-  crs: L.CRS.Simple,
+  crs: L.Util.extend({}, L.CRS.Simple, {
+    transformation: new L.Transformation(1, 0, -1, 0)
+  }),
   inertia: !L.Browser.ie
 });
 
