@@ -1,5 +1,5 @@
 var L = require('leaflet');
-var SvgOverlay = global.SvgOverlay = require('../../src/svgoverlay');
+var SvgOverlay = global.SvgOverlay = require('../../src/svgoverlay3');
 var xhr = global.xhr = require('xhr');
 
 global.SvgLayer = require('../../src/svglayer');
