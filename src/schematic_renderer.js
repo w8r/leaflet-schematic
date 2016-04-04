@@ -1,5 +1,11 @@
 module.exports = L.SVG.extend({
 
+
+  options: {
+    padding: 0.3
+  },
+
+
   _initContainer: function() {
     L.SVG.prototype._initContainer();
 
@@ -8,15 +14,16 @@ module.exports = L.SVG.extend({
     this._rootInvertGroup.appendChild(this._rootGroup);
   },
 
+
   _update: function() {
     L.SVG.prototype._update.call(this);
     var schematic = this.options.schematic;
     var map = this._map;
-    if (map && schematic._bounds) {
+
+    if (map && schematic._bounds && this._rootInvertGroup) {
       var topLeft = map.latLngToLayerPoint(schematic._bounds.getNorthWest());
       var scale   = schematic._ratio *
         map.options.crs.scale(map.getZoom() - schematic.options.zoomOffset);
-      // console.log('renderer', schematic._ratio, scale);
 
       this._topLeft = topLeft;
       this._scale   = scale;
@@ -25,13 +32,8 @@ module.exports = L.SVG.extend({
       this._rootGroup.setAttribute('transform',
          L.DomUtil.getMatrixString(topLeft, scale));
 
-      // console.log(
-      //   L.DomUtil.getMatrixString(topLeft, scale),
-      //   L.DomUtil.getMatrixString(topLeft.multiplyBy(-1 / scale), 1 / scale)
-      // );
-
       this._rootInvertGroup.setAttribute('transform',
-        L.DomUtil.getMatrixString(topLeft.multiplyBy(-1 / scale), 1 / scale));
+        L.DomUtil.getMatrixString(topLeft.multiplyBy( -1 / scale), 1 / scale));
     }
   },
 

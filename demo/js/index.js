@@ -24,7 +24,8 @@ L.SVG.prototype.options.padding = 0.5;
 var svg = global.svg = null;
 
 map.on('click', function(evt) {
-  console.log('map', evt.originalEvent.target, evt.latlng, map.project(evt.latlng, map.getMinZoom() + 1));
+  console.log('map', evt.originalEvent.target,
+    evt.latlng, map.project(evt.latlng, map.getMinZoom() + svg.options.zoomOffset));
 });
 
 var select = document.querySelector('#select-schematic');

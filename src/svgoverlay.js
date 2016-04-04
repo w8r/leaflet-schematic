@@ -8,11 +8,13 @@ module.exports = L.Rectangle.extend({
 
   options: {
     opacity: 0.4,
-    fillOpacity: 0.1,
+    fillOpacity: 0,
     weight: 1,
-    adjustToScreen: false,
-    zoomOffset: 1
+    adjustToScreen: true,
+    // hardcode zoom offset to snap to some level
+    zoomOffset: 0
   },
+
 
   /**
    * @constructor
@@ -150,7 +152,16 @@ module.exports = L.Rectangle.extend({
     this._rawData = svg;
     svg = L.DomUtil.getSVGContainer(svg);
     var bbox = this._bbox = L.DomUtil.getSVGBBox(svg);
-    var minZoom = this._map.getMinZoom() + this.options.zoomOffset;
+    var size = this.getOriginalSize();
+    var mapSize = this._map.getSize();
+
+    if (this.options.adjustToScreen) {
+      if (size.y !== mapSize.y) {
+        var ratio = Math.min(mapSize.x / size.x, mapSize.y / size.y);
+        this.options.zoomOffset = ratio;
+        console.log(this.options.zoomOffset)
+      }
+    }
 
     if (svg.getAttribute('viewBox') === null) {
       this._rawData = this._rawData.replace('<svg',
@@ -159,15 +170,14 @@ module.exports = L.Rectangle.extend({
 
     // TODO: calculate zoom offset here to fit the screen
 
+    var minZoom = this._map.getMinZoom() + this.options.zoomOffset;
     // calculate the edges of the image, in coordinate space
     this._bounds = new L.LatLngBounds(
       this._map.unproject([bbox[0], bbox[3]], minZoom),
       this._map.unproject([bbox[2], bbox[1]], minZoom)
     );
 
-    var size = this.getOriginalSize();
     var mapSize = this._map.getSize();
-
     if (size.y !== mapSize.y && this.options.adjustToScreen) {
       var ratio    = Math.min(mapSize.x / size.x, mapSize.y / size.y);
       this._bounds = this._bounds.scale(ratio);
@@ -225,6 +235,29 @@ module.exports = L.Rectangle.extend({
       this._group.setAttribute('transform',
          L.DomUtil.getMatrixString(topLeft, scale));
     }
+  },
+
+
+  /**
+   * Scales projected point FROM viewportized schematic ratio
+   * @param  {L.Point} pt
+   * @return {L.Point}
+   */
+  _unscalePoint: function(pt) {
+    return this._transformation.transform(
+      this._transformation.untransform(pt).divideBy(this._ratio));
+  },
+
+
+  /**
+   * Scales projected point TO viewportized schematic ratio
+   * @param  {L.Point} pt
+   * @return {L.Point}
+   */
+  _scalePoint: function(pt) {
+    return this._transformation.transform(
+      this._transformation.untransform(pt).multiplyBy(this._ratio)
+    );
   }
 
 });
