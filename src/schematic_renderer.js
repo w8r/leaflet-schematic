@@ -47,6 +47,34 @@ module.exports = L.SVG.extend({
    * @return {String} [description]
    */
   exportSVG: function() {
+    var schematic = this.options.schematic;
+    var svg       = this._container.cloneNode(true);
+
+    var clipPath  = L.SVG.create('clipPath');
+    var clipRect  = L.SVG.create('rect');
+
+    clipRect.setAttribute('x', schematic._bbox[0]);
+    clipRect.setAttribute('y', schematic._bbox[1]);
+    clipRect.setAttribute('width', schematic._bbox[2]);
+    clipRect.setAttribute('height', schematic._bbox[3]);
+    clipPath.appendChild(clipRect);
+
+    var clipId = 'viewboxClip-' + L.Util.stamp(schematic._group);
+    clipPath.setAttribute('id', clipId);
+    var defs = svg.querySelector('.svg-overlay defs');
+    if (!defs) {
+      defs = L.SVG.create('defs');
+      svg.querySelector('.svg-overlay').appendChild(defs);
+    }
+    defs.appendChild(clipPath);
+
+    var clipGroup = svg.lastChild;
+    clipGroup.setAttribute('clip-path', 'url(#' + clipId + ')');
+    clipGroup.firstChild.setAttribute('transform', clipGroup.getAttribute('transform'));
+    clipGroup.removeAttribute('transform');
+    svg.querySelector('.svg-overlay').removeAttribute('transform');
+
+    return svg;
   }
 
 });

@@ -116,6 +116,9 @@ module.exports = L.Rectangle.extend({
   },
 
 
+  /**
+   * @param  {L.Map} map
+   */
   onAdd: function(map) {
     L.Rectangle.prototype.onAdd.call(this, map);
     if (!this._svg) {
@@ -126,6 +129,9 @@ module.exports = L.Rectangle.extend({
   },
 
 
+  /**
+   * @param  {L.Map} map
+   */
   onRemove: function(map) {
     this._group.parentNode.removeChild(this._group);
     L.Rectangle.prototype.onRemove.call(this, map);
@@ -155,12 +161,10 @@ module.exports = L.Rectangle.extend({
     var size = this.getOriginalSize();
     var mapSize = this._map.getSize();
 
-    if (this.options.adjustToScreen) {
-      if (size.y !== mapSize.y) {
-        var ratio = Math.min(mapSize.x / size.x, mapSize.y / size.y);
-        this.options.zoomOffset = ratio;
-        console.log(this.options.zoomOffset)
-      }
+    if (this.options.adjustToScreen && size.y !== mapSize.y) {
+      this._ratio = Math.min(mapSize.x / size.x, mapSize.y / size.y);
+      this.options.zoomOffset = (this._ratio < 1) ?
+        this._ratio : (1 - this._ratio);
     }
 
     if (svg.getAttribute('viewBox') === null) {
@@ -168,29 +172,36 @@ module.exports = L.Rectangle.extend({
         '<svg viewBox="' + bbox.join(' ') + '"');
     }
 
-    // TODO: calculate zoom offset here to fit the screen
-
     var minZoom = this._map.getMinZoom() + this.options.zoomOffset;
     // calculate the edges of the image, in coordinate space
     this._bounds = new L.LatLngBounds(
       this._map.unproject([bbox[0], bbox[3]], minZoom),
       this._map.unproject([bbox[2], bbox[1]], minZoom)
     );
-
-    var mapSize = this._map.getSize();
-    if (size.y !== mapSize.y && this.options.adjustToScreen) {
-      var ratio    = Math.min(mapSize.x / size.x, mapSize.y / size.y);
-      this._bounds = this._bounds.scale(ratio);
-      this._ratio  = ratio;
-    }
+    this._bounds = this._bounds.scale(this._ratio);
 
     this._size   = size;
     this._origin = this._map.project(this._bounds.getCenter(), minZoom);
-    this._viewBoxOffset = L.point(this._bbox[0], this._bbox[1]);
     this._transformation = new L.Transformation(
       1, this._origin.x, 1, this._origin.y);
 
+    this._createContents(svg);
+    this._renderer._container.insertBefore(
+      this._group, this._renderer._container.firstChild);
+
+    this.fire('load');
+
+    this._latlngs = this._boundsToLatLngs(this._bounds);
+    this._reset();
+  },
+
+
+  /**
+   * @param  {SVGElement} svg
+   */
+  _createContents: function(svg) {
     this._group = L.SVG.create('g');
+    L.Util.stamp(this._group);
     L.DomUtil.addClass(this._group, 'svg-overlay');
 
     if (L.Browser.ie) { // innerHTML doesn't work for SVG in IE
@@ -202,12 +213,6 @@ module.exports = L.Rectangle.extend({
     } else {
       this._group.innerHTML = svg.innerHTML;
     }
-    this._renderer._container.insertBefore(
-      this._group, this._renderer._container.firstChild);
-
-    this.fire('load');
-    this._latlngs = this._boundsToLatLngs(this._bounds);
-    this._reset();
   },
 
 
@@ -223,6 +228,10 @@ module.exports = L.Rectangle.extend({
   },
 
 
+
+  /**
+   * Position our "rectangle"
+   */
   _updatePath: function() {
     L.Rectangle.prototype._updatePath.call(this);
     if (this._group) {
@@ -258,6 +267,47 @@ module.exports = L.Rectangle.extend({
     return this._transformation.transform(
       this._transformation.untransform(pt).multiplyBy(this._ratio)
     );
+  },
+
+
+  /**
+   * @return {Number}
+   */
+  getRatio: function() {
+    return this._ratio;
+  },
+
+
+  /**
+   * Transform map coord to schematic point
+   * @param  {L.LatLng} coord
+   * @return {L.Point}
+   */
+  projectPoint: function(coord) {
+    var map = this._map;
+    return this._unscalePoint(map.project(
+      coord, map.getMinZoom() + this.options.zoomOffset));
+  },
+
+
+  /**
+   * @param  {L.Point} pt
+   * @return {L.LatLng}
+   */
+  unprojectPoint: function(pt) {
+    var map = this._map;
+    return map.unproject(
+      this._scalePoint(pt), map.getMinZoom() + this.options.zoomOffset);
+  },
+
+
+  /**
+   * @param  {Boolean=} string
+   * @return {SVGElement|String}
+   */
+  exportSVG: function(string) {
+    var node = this._renderer.exportSVG();
+    return string ? node.outerHTML : node;
   }
 
 });

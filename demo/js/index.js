@@ -25,7 +25,7 @@ var svg = global.svg = null;
 
 map.on('click', function(evt) {
   console.log('map', evt.originalEvent.target,
-    evt.latlng, map.project(evt.latlng, map.getMinZoom() + svg.options.zoomOffset));
+    evt.latlng, svg.projectPoint(evt.latlng));
 });
 
 var select = document.querySelector('#select-schematic');
