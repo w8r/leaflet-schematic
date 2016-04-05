@@ -4,15 +4,21 @@ var Renderer = require('./schematic_renderer');
 require('./bounds');
 require('./utils');
 
-module.exports = L.Rectangle.extend({
+
+/**
+ * @class Schematic
+ * @extends {L.Rectangle}
+ */
+L.Schematic = module.exports = L.Rectangle.extend({
 
   options: {
-    opacity: 0.4,
+    opacity: 0,
     fillOpacity: 0,
     weight: 1,
     adjustToScreen: true,
     // hardcode zoom offset to snap to some level
-    zoomOffset: 0
+    zoomOffset: 0,
+    useRaster: L.Browser.ie
   },
 
 
@@ -100,16 +106,21 @@ module.exports = L.Rectangle.extend({
 
 
     /**
+     * @type {L.Canvas}
+     */
+    this._canvasRenderer = null;
+
+
+    /**
      * @type {Element}
      */
-    this._image = null;
+    this._raster = null;
 
 
     /**
      * @type {Canvas}
      */
     this._canvas = null;
-
 
     L.Rectangle.prototype.initialize.call(
       this, L.latLngBounds([0,0], [0,0]), options);
@@ -126,6 +137,19 @@ module.exports = L.Rectangle.extend({
     } else {
       this.onLoad(this._svg);
     }
+
+    if (this.options.useRaster) {
+      var canvasRenderer = new L.Canvas({}).addTo(map);
+      canvasRenderer._container.parentNode
+        .insertBefore(canvasRenderer._container, this._renderer._container);
+      this._canvasRenderer = canvasRenderer;
+
+      map.dragging._draggable
+        .on('predrag', this._onPreDrag, this)
+        .on('dragend', this._onDragEnd, this);
+
+      canvasRenderer._container.style.visibility = 'hidden';
+    }
   },
 
 
@@ -135,6 +159,14 @@ module.exports = L.Rectangle.extend({
   onRemove: function(map) {
     this._group.parentNode.removeChild(this._group);
     L.Rectangle.prototype.onRemove.call(this, map);
+    if (this._canvasRenderer) {
+      this._canvasRenderer.removeFrom(map);
+      map.dragging._draggable
+        .off('predrag', this._onPreDrag, this)
+        .off('dragend', this._onDragEnd, this);
+    }
+    this._renderer.removeFrom(map);
+    console.log(this._renderer);
   },
 
 
@@ -155,6 +187,10 @@ module.exports = L.Rectangle.extend({
    * @param  {String} svg markup
    */
   onLoad: function(svg) {
+    if (!this._map) {
+      return;
+    }
+
     this._rawData = svg;
     svg = L.DomUtil.getSVGContainer(svg);
     var bbox = this._bbox = L.DomUtil.getSVGBBox(svg);
@@ -193,6 +229,10 @@ module.exports = L.Rectangle.extend({
 
     this._latlngs = this._boundsToLatLngs(this._bounds);
     this._reset();
+
+    if (this.options.useRaster) {
+      this.toImage();
+    }
   },
 
 
@@ -234,6 +274,7 @@ module.exports = L.Rectangle.extend({
    */
   _updatePath: function() {
     L.Rectangle.prototype._updatePath.call(this);
+
     if (this._group) {
       var topLeft = this._map.latLngToLayerPoint(this._bounds.getNorthWest());
       // scale is scale factor, zoom is zoom level
@@ -243,6 +284,10 @@ module.exports = L.Rectangle.extend({
       // compensate viewbox dismissal with a shift here
       this._group.setAttribute('transform',
          L.DomUtil.getMatrixString(topLeft, scale));
+
+      if (this._canvasRenderer) {
+        this._redrawCanvas(topLeft, scale);
+      }
     }
   },
 
@@ -308,6 +353,134 @@ module.exports = L.Rectangle.extend({
   exportSVG: function(string) {
     var node = this._renderer.exportSVG();
     return string ? node.outerHTML : node;
+  },
+
+
+   /**
+   * Rasterizes the schematic
+   * @return {Schematic}
+   */
+  toImage: function() {
+    var img = new Image();
+
+    // this doesn't work in IE, force size
+    // img.style.height = img.style.width = '100%';
+    img.style.width = this._size.x + 'px';
+    img.style.height = this._size.y + 'px';
+    img.src = this.toBase64();
+
+    // hack to trick IE rendering engine
+    L.DomEvent.on(img, 'load', function () {
+      L.point(img.offsetWidth, img.offsetHeight);
+      this._reset();
+    }, this);
+
+    img.style.opacity = 0;
+
+    if (this._raster) {
+      this._raster.parentNode.removeChild(this._raster);
+      this._raster = null;
+    }
+
+    L.DomUtil.addClass(img, 'schematic-image');
+    this._renderer._container.parentNode
+      .insertBefore(img, this._renderer._container);
+    this._raster = img;
+    return this;
+  },
+
+
+  /**
+   * Convert SVG data to base64 for rasterization
+   * @return {String} base64 encoded SVG
+   */
+  toBase64: function() {
+    // console.time('base64');
+    var base64 = this._base64encoded ||
+      b64.btoa(unescape(encodeURIComponent(this._rawData)));
+    this._base64encoded = base64;
+    // console.timeEnd('base64');
+
+    return 'data:image/svg+xml;base64,' + base64;
+  },
+
+
+  /**
+   * Redraw canvas on real changes: zoom, viewreset
+   * @param  {L.Point} topLeft
+   * @param  {Number}  scale
+   */
+  _redrawCanvas: function(topLeft, scale) {
+    if (!this._raster) {
+      return;
+    }
+
+    var size = this.getOriginalSize().multiplyBy(scale);
+    var ctx = this._canvasRenderer._ctx;
+
+    L.Util.requestAnimFrame(function() {
+      ctx.drawImage(this._raster, topLeft.x, topLeft.y, size.x, size.y);
+    }, this);
+  },
+
+
+  /**
+   * Toggle canvas instead of SVG when dragging
+   */
+  _showRaster: function () {
+    if (this._canvasRenderer) {
+      this._canvasRenderer._container.style.visibility = 'visible';
+      this._group.style.visibility = 'hidden';
+    }
+  },
+
+
+  /**
+   * Swap back to SVG
+   */
+  _hideRaster: function () {
+    if (this._canvasRenderer) {
+      this._canvasRenderer._container.style.visibility = 'hidden';
+      this._group.style.visibility = 'visible';
+    }
+  },
+
+
+  /**
+   * IE-only
+   * Replace SVG with canvas before drag
+   */
+  _onPreDrag: function() {
+    if (this.options.useRaster) {
+      this._showRaster();
+    }
+  },
+
+
+  /**
+   * Drag end: put SVG back in IE
+   */
+  _onDragEnd: function() {
+    if (this.options.useRaster) {
+      this._hideRaster();
+    }
   }
 
 });
+
+
+// aliases
+L.Schematic.prototype.project   = L.Schematic.prototype.projectPoint;
+L.Schematic.prototype.unproject = L.Schematic.prototype.unprojectPoint;
+
+
+/**
+ * Factory
+ * @param  {String}         svg     SVG string or URL
+ * @param  {L.LatLngBounds} bounds
+ * @param  {Object=}        options
+ * @return {L.Schematic}
+ */
+L.schematic = function (svg, bounds, options) {
+  return new L.Schematic(svg, bounds, options);
+};

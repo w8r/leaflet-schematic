@@ -1,6 +1,7 @@
 var L = require('leaflet');
 var SvgOverlay = global.SvgOverlay = require('../../src/svgoverlay');
 var xhr = global.xhr = require('xhr');
+var saveAs = require('browser-filesaver').saveAs;
 
 //global.SvgLayer = require('../../src/svglayer');
 
@@ -56,4 +57,10 @@ function onSelect() {
 
 L.DomEvent.on(select, 'change', onSelect);
 
-onSelect.call(select)
+onSelect.call(select);
+
+
+L.DomEvent.on(document.querySelector('#dl'), 'click', function() {
+  saveAs(new Blob([svg.exportSVG(true)]), 'schematic.svg');
+});
+

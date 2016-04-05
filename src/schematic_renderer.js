@@ -1,22 +1,37 @@
-module.exports = L.SVG.extend({
-
+/**
+ * @class L.SchematicRenderer
+ * @param  {Object}
+ * @extends {L.SVG}
+ */
+L.SchematicRenderer = module.exports = L.SVG.extend({
 
   options: {
-    padding: 0.3
+    padding: 0.3,
+    useRaster: L.Browser.ie
   },
 
 
+  /**
+   * Create additional containers for the vector features to be
+   * transformed to live in the schematic space
+   */
   _initContainer: function() {
     L.SVG.prototype._initContainer();
 
     this._rootInvertGroup = L.SVG.create('g');
     this._container.appendChild(this._rootInvertGroup);
     this._rootInvertGroup.appendChild(this._rootGroup);
+
+    L.DomUtil.addClass(this._container, 'schematics-renderer');
   },
 
 
+  /**
+   * Update call on resize, redraw, zoom change
+   */
   _update: function() {
     L.SVG.prototype._update.call(this);
+
     var schematic = this.options.schematic;
     var map = this._map;
 
@@ -70,12 +85,29 @@ module.exports = L.SVG.extend({
 
     var clipGroup = svg.lastChild;
     clipGroup.setAttribute('clip-path', 'url(#' + clipId + ')');
-    clipGroup.firstChild.setAttribute('transform', clipGroup.getAttribute('transform'));
+    clipGroup.firstChild.setAttribute('transform',
+      clipGroup.getAttribute('transform'));
     clipGroup.removeAttribute('transform');
     svg.querySelector('.svg-overlay').removeAttribute('transform');
 
-    return svg;
+    svg.style.transform = '';
+    svg.setAttribute('viewBox', schematic._bbox.join(' '));
+
+    var div = document.createElement('div');
+    div.innerHTML = (/(\<svg\s+([^>]*)\>)/gi).exec(schematic._rawData)[0] + '</svg>';
+    div.firstChild.innerHTML = svg.innerHTML;
+
+    return div.firstChild;
   }
 
 });
+
+
+/**
+ * @param  {Object}
+ * @return {L.SchematicRenderer}
+ */
+L.schematicRenderer = module.exports.schematicRenderer = function(options) {
+  return new L.SchematicRenderer(options);
+};
 
