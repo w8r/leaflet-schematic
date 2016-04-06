@@ -1,3 +1,4 @@
+var L        = require('leaflet');
 var b64      = require('Base64');
 var Renderer = require('./schematic_renderer');
 
