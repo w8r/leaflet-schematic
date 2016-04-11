@@ -1,4 +1,4 @@
-# Leaflet schematics
+# Leaflet schematic [![npm version](https://badge.fury.io/js/leaflet-schematic.svg)](http://badge.fury.io/js/leaflet-schematic)
 
 This is a set of tools to display and work with non-cartographic large
 high-detailed SVG schematics or blueprints. SVG is a perfect format for the
