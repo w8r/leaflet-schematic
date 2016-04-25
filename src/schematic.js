@@ -19,6 +19,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     adjustToScreen: true,
     // hardcode zoom offset to snap to some level
     zoomOffset: 0,
+    interactive: false,
     useRaster: L.Browser.ie
   },
 
@@ -133,6 +134,13 @@ L.Schematic = module.exports = L.Rectangle.extend({
    */
   onAdd: function(map) {
     L.Rectangle.prototype.onAdd.call(this, map);
+
+    if (!this._group) {
+      this._group = L.SVG.create('g');
+      L.Util.stamp(this._group);
+      L.DomUtil.addClass(this._group, 'svg-overlay');
+    }
+
     if (!this._svg) {
       this.load();
     } else {
@@ -238,13 +246,40 @@ L.Schematic = module.exports = L.Rectangle.extend({
 
 
   /**
+   * @param  {Function} callback
+   * @param  {*=}       context
+   * @return {Overlay}
+   */
+  whenReady: function(callback, context) {
+    if (this._bounds) {
+      callback.call(context);
+    } else {
+      this.once('load', callback, context);
+    }
+    return this;
+  },
+
+
+  /**
+   * @return {SVGElement}
+   */
+  getDocument: function() {
+    return this._group;
+  },
+
+
+  /**
+   * @return {L.SchematicRenderer}
+   */
+  getRenderer: function() {
+    return this._renderer;
+  },
+
+
+  /**
    * @param  {SVGElement} svg
    */
   _createContents: function(svg) {
-    this._group = L.SVG.create('g');
-    L.Util.stamp(this._group);
-    L.DomUtil.addClass(this._group, 'svg-overlay');
-
     if (L.Browser.ie) { // innerHTML doesn't work for SVG in IE
       var child = svg.firstChild;
       do {
@@ -344,6 +379,30 @@ L.Schematic = module.exports = L.Rectangle.extend({
     var map = this._map;
     return map.unproject(
       this._scalePoint(pt), map.getMinZoom() + this.options.zoomOffset);
+  },
+
+
+  /**
+   * @param  {L.Bounds} bounds
+   * @return {L.LatLngBounds}
+   */
+  unprojectBounds: function(bounds) {
+    var sw = this.unprojectPoint(bounds.min);
+    var ne = this.unprojectPoint(bounds.max);
+    return L.latLngBounds(sw, ne);
+  },
+
+
+  /**
+   * Transform layerBounds to schematic bbox
+   * @param  {L.LatLngBounds} bounds
+   * @return {L.Bounds}
+   */
+  projectBounds: function(bounds) {
+    return new L.Bounds(
+      this.projectPoint(bounds.getSouthWest()),
+      this.projectPoint(bounds.getNorthEast())
+    );
   },
 
 

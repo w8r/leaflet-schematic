@@ -16,7 +16,7 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
    * transformed to live in the schematic space
    */
   _initContainer: function() {
-    L.SVG.prototype._initContainer();
+    L.SVG.prototype._initContainer.call(this);
 
     this._rootInvertGroup = L.SVG.create('g');
     this._container.appendChild(this._rootInvertGroup);

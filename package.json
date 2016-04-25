@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
     "start": "watchify -v -d -t [ babelify --presets [ es2015 ] ] -s L.SVGOverlay demo/js/index.js -o demo/js/build.js & serve -p 3002",
-    "build": "browserify -v -d -t [ babelify --presets [ es2015 ] ] -s L.SVGOverlay -u leaflet ./index.js -o dist/L.SVGOverlay.js"
+    "lint": "eslint ./src/",
+    "build-js": "browserify -v -d -t [ babelify --presets [ es2015 ] ] -s L.SVGOverlay -u leaflet ./index.js -o dist/L.SVGOverlay.js",
+    "build": "npm run lint && npm run build-js"
   },
   "author": "Alexander Milevski <info@w8r.name>",
   "license": "MIT",
@@ -19,6 +21,7 @@
     "babelify": "^7.2.0",
     "browser-filesaver": "^1.1.1",
     "browserify": "^13.0.0",
+    "eslint": "^2.8.0",
     "faucet": "0.0.1",
     "tape": "^4.4.0",
     "watchify": "^3.7.0",
