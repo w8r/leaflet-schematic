@@ -87,6 +87,13 @@ L.Schematic = module.exports = L.Rectangle.extend({
      */
     this._rawData = '';
 
+
+    /**
+     * @type {L.Point}
+     */
+    this._viewBoxOffset = L.point(0, 0);
+
+
     if (typeof svg === 'string' && !/\<svg/ig.test(svg)) {
       this._svg = null;
 
@@ -175,7 +182,6 @@ L.Schematic = module.exports = L.Rectangle.extend({
         .off('dragend', this._onDragEnd, this);
     }
     this._renderer.removeFrom(map);
-    console.log(this._renderer);
   },
 
 
@@ -210,25 +216,28 @@ L.Schematic = module.exports = L.Rectangle.extend({
       this._ratio = Math.min(mapSize.x / size.x, mapSize.y / size.y);
       this.options.zoomOffset = (this._ratio < 1) ?
         this._ratio : (1 - this._ratio);
+      this.options.zoomOffset = 0;
     }
+
+    console.log(this.options.adjustToScreen, bbox, this._ratio, size);
 
     if (svg.getAttribute('viewBox') === null) {
       this._rawData = this._rawData.replace('<svg',
         '<svg viewBox="' + bbox.join(' ') + '"');
     }
 
-    var minZoom = this._map.getMinZoom() + this.options.zoomOffset;
+    var minZoom = this._map.getMinZoom() - this.options.zoomOffset;
     // calculate the edges of the image, in coordinate space
     this._bounds = new L.LatLngBounds(
       this._map.unproject([bbox[0], bbox[3]], minZoom),
       this._map.unproject([bbox[2], bbox[1]], minZoom)
-    );
-    this._bounds = this._bounds.scale(this._ratio);
+    ).scale(this._ratio);
 
     this._size   = size;
     this._origin = this._map.project(this._bounds.getCenter(), minZoom);
     this._transformation = new L.Transformation(
       1, this._origin.x, 1, this._origin.y);
+    this._viewBoxOffset = L.point(this._bbox[0], this._bbox[1]);
 
     this._createContents(svg);
     this._renderer._container.insertBefore(
@@ -317,9 +326,13 @@ L.Schematic = module.exports = L.Rectangle.extend({
       var scale   = this._map.options.crs.scale(
         this._map.getZoom() - this.options.zoomOffset) * this._ratio;
 
+      topLeft = topLeft.subtract(this._viewBoxOffset.multiplyBy(scale))
+
       // compensate viewbox dismissal with a shift here
       this._group.setAttribute('transform',
          L.DomUtil.getMatrixString(topLeft, scale));
+
+      console.log('schematic', L.DomUtil.getMatrixString(topLeft, scale));
 
       if (this._canvasRenderer) {
         this._redrawCanvas(topLeft, scale);

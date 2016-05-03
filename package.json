@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
-    "start": "watchify -v -d -t [ babelify --presets [ es2015 ] ] -s L.SVGOverlay demo/js/index.js -o demo/js/build.js & serve -p 3002",
+    "start": "watchify -v -d -t [ babelify --presets [ es2015 ] ] -s L.SVGOverlay demo/js/index.js -o demo/js/build.js & serve -p 3003",
     "lint": "eslint ./src/",
     "build-js": "browserify -v -d -t [ babelify --presets [ es2015 ] ] -s L.SVGOverlay -u leaflet ./index.js -o dist/L.SVGOverlay.js",
     "build": "npm run lint && npm run build-js"

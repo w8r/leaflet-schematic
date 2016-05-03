@@ -43,9 +43,14 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
       this._topLeft = topLeft;
       this._scale   = scale;
 
+      console.log('renderer', L.DomUtil.getMatrixString(topLeft, scale));
+
       // compensate viewbox dismissal with a shift here
       this._rootGroup.setAttribute('transform',
          L.DomUtil.getMatrixString(topLeft, scale));
+
+      console.log('renderer reverse matrix',
+        L.DomUtil.getMatrixString(topLeft.multiplyBy( -1 / scale), 1 / scale));
 
       this._rootInvertGroup.setAttribute('transform',
         L.DomUtil.getMatrixString(topLeft.multiplyBy( -1 / scale), 1 / scale));
@@ -93,8 +98,9 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
     svg.style.transform = '';
     svg.setAttribute('viewBox', schematic._bbox.join(' '));
 
-    var div = document.createElement('div');
-    div.innerHTML = (/(\<svg\s+([^>]*)\>)/gi).exec(schematic._rawData)[0] + '</svg>';
+    var div = L.DomUtil.create('div', '');
+    div.innerHTML = (/(\<svg\s+([^>]*)\>)/gi)
+      .exec(schematic._rawData)[0] + '</svg>';
     div.firstChild.innerHTML = svg.innerHTML;
 
     return div.firstChild;

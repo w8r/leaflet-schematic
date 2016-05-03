@@ -13,7 +13,6 @@ var map = window.map = L.map('image-map', {
   zoom: 1,
   crs: L.Util.extend({}, L.CRS.Simple, {
     //transformation: new L.Transformation(1/0.03632478632478633, 0, -1/0.03632478632478633, 0),
-    transformation: new L.Transformation(2, 0, -2, 0),
     //bounds: L.bounds([-200*180, -200*90], [200*180, 200*90]),
     infinite: false
   }),
@@ -31,10 +30,15 @@ map.on('click', function(evt) {
 
 var select = document.querySelector('#select-schematic');
 function onSelect() {
-  if (svg) map.removeLayer(svg);
+  if (svg) {
+    map.removeLayer(svg);
+    map.off('mousemove', trackPosition, map);
+  }
 
   svg = global.svg = new SvgOverlay(this.value, {
     usePathContainer: true,
+    opacity: 1,
+    weight: 0.25,
     //useRaster: true,
     load: function(url, callback) {
       xhr({
@@ -49,9 +53,19 @@ function onSelect() {
   })
     .once('load', function() {
       map.fitBounds(svg.getBounds(), { animate: false });
-      // global.rect = L.rectangle(svg.getBounds().pad(-0.25), {
-      //   renderer: svg._renderer
-      // }).addTo(map);
+      map.on('mousemove', trackPosition, map);
+
+      global.rect = L.rectangle(svg.getBounds().pad(-0.25), {
+         renderer: svg._renderer,
+         weight: 1,
+         color: 'green'
+      }).addTo(map);
+
+      global.referenceRect = L.rectangle(svg.getBounds().pad(-0.25), {
+         weight: 1,
+         color: 'red'
+      }).addTo(map);
+
     }).addTo(map);
 }
 
@@ -63,4 +77,14 @@ onSelect.call(select);
 L.DomEvent.on(document.querySelector('#dl'), 'click', function() {
   saveAs(new Blob([svg.exportSVG(true)]), 'schematic.svg');
 });
+
+function trackPosition(evt) {
+  if (evt.originalEvent.shiftKey) {
+    console.log(
+      evt.latlng,
+      svg.projectPoint(evt.latlng).toString(),
+      svg.unprojectPoint(svg.projectPoint(evt.latlng))
+    );
+  }
+}
 
