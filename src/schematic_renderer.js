@@ -36,21 +36,19 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
     var map = this._map;
 
     if (map && schematic._bounds && this._rootInvertGroup) {
-      var topLeft = map.latLngToLayerPoint(schematic._bounds.getNorthWest());
+      var topLeft = map.latLngToLayerPoint(schematic._bounds.getNorthWest()).subtract(schematic._viewBoxOffset);
       var scale   = schematic._ratio *
         map.options.crs.scale(map.getZoom() - schematic.options.zoomOffset);
 
       this._topLeft = topLeft;
       this._scale   = scale;
 
-      console.log('renderer', L.DomUtil.getMatrixString(topLeft, scale));
-
       // compensate viewbox dismissal with a shift here
       this._rootGroup.setAttribute('transform',
          L.DomUtil.getMatrixString(topLeft, scale));
 
-      console.log('renderer reverse matrix',
-        L.DomUtil.getMatrixString(topLeft.multiplyBy( -1 / scale), 1 / scale));
+
+      console.log(schematic._viewBoxOffset.multiplyBy(scale), schematic._viewBoxOffset.multiplyBy(1 /scale));
 
       this._rootInvertGroup.setAttribute('transform',
         L.DomUtil.getMatrixString(topLeft.multiplyBy( -1 / scale), 1 / scale));
