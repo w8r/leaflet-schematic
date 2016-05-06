@@ -62,8 +62,8 @@ function onSelect() {
       }).addTo(map);
 
       global.referenceRect = L.rectangle(svg.getBounds().pad(-0.25), {
-         weight: 1,
-         color: 'red'
+          weight: 1,
+          color: 'red'
       }).addTo(map);
 
     }).addTo(map);
@@ -77,6 +77,7 @@ onSelect.call(select);
 L.DomEvent.on(document.querySelector('#dl'), 'click', function() {
   saveAs(new Blob([svg.exportSVG(true)]), 'schematic.svg');
 });
+
 
 function trackPosition(evt) {
   if (evt.originalEvent.shiftKey) {

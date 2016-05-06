@@ -27,6 +27,16 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
 
 
   /**
+   * Make sure layers are not clipped
+   * @param  {L.Layer}
+   */
+  _initPath: function(layer) {
+    layer.options.noClip = true;
+    L.SVG.prototype._initPath.call(this, layer);
+  },
+
+
+  /**
    * Update call on resize, redraw, zoom change
    */
   _update: function() {
@@ -36,7 +46,7 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
     var map = this._map;
 
     if (map && schematic._bounds && this._rootInvertGroup) {
-      var topLeft = map.latLngToLayerPoint(schematic._bounds.getNorthWest()).subtract(schematic._viewBoxOffset);
+      var topLeft = map.latLngToLayerPoint(schematic._bounds.getNorthWest());
       var scale   = schematic._ratio *
         map.options.crs.scale(map.getZoom() - schematic.options.zoomOffset);
 
@@ -46,9 +56,6 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
       // compensate viewbox dismissal with a shift here
       this._rootGroup.setAttribute('transform',
          L.DomUtil.getMatrixString(topLeft, scale));
-
-
-      console.log(schematic._viewBoxOffset.multiplyBy(scale), schematic._viewBoxOffset.multiplyBy(1 /scale));
 
       this._rootInvertGroup.setAttribute('transform',
         L.DomUtil.getMatrixString(topLeft.multiplyBy( -1 / scale), 1 / scale));
@@ -66,6 +73,8 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
    */
   exportSVG: function() {
     var schematic = this.options.schematic;
+
+    // go through every layer and make sure they're not clipped
     var svg       = this._container.cloneNode(true);
 
     var clipPath  = L.SVG.create('clipPath');

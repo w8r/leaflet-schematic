@@ -1,6 +1,6 @@
 var L        = require('leaflet');
 var b64      = require('Base64');
-var Renderer = require('./schematic_renderer');
+var Renderer = require('./renderer');
 
 require('./bounds');
 require('./utils');
@@ -17,6 +17,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     fillOpacity: 0,
     weight: 1,
     adjustToScreen: true,
+
     // hardcode zoom offset to snap to some level
     zoomOffset: 0,
     interactive: false,
@@ -216,6 +217,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
       this._ratio = Math.min(mapSize.x / size.x, mapSize.y / size.y);
       this.options.zoomOffset = (this._ratio < 1) ?
         this._ratio : (1 - this._ratio);
+      // dismiss that offset
       this.options.zoomOffset = 0;
     }
 
@@ -331,8 +333,6 @@ L.Schematic = module.exports = L.Rectangle.extend({
       // compensate viewbox dismissal with a shift here
       this._group.setAttribute('transform',
          L.DomUtil.getMatrixString(topLeft, scale));
-
-      console.log('schematic', L.DomUtil.getMatrixString(topLeft, scale));
 
       if (this._canvasRenderer) {
         this._redrawCanvas(topLeft, scale);
