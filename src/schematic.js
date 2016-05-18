@@ -21,7 +21,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     // hardcode zoom offset to snap to some level
     zoomOffset: 0,
     interactive: false,
-    useRaster: L.Browser.ie
+    useRaster: !L.Browser.ie
   },
 
 
@@ -37,6 +37,21 @@ L.Schematic = module.exports = L.Rectangle.extend({
      * @type {String}
      */
     this._svg    = svg;
+
+    /**
+     * Initial svg width, cause we will have to get rid of that to maintain
+     * the aspect ratio
+     *
+     * @type {String}
+     */
+    this._initialWidth  = '';
+
+
+    /**
+     * Initial svg height
+     * @type {String}
+     */
+    this._initialHeight = '';
 
     if (!(bounds instanceof L.LatLngBounds)) {
       options = bounds;
@@ -133,7 +148,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     this._canvas = null;
 
     L.Rectangle.prototype.initialize.call(
-      this, L.latLngBounds([0,0], [0,0]), options);
+      this, L.latLngBounds([0, 0], [0, 0]), options);
   },
 
 
@@ -199,6 +214,38 @@ L.Schematic = module.exports = L.Rectangle.extend({
 
 
   /**
+   * @param  {String} svgString
+   * @return {String}
+   */
+  _readSVGData: function(svgString) {
+    var parser     = new DOMParser();
+    var serializer = new XMLSerializer();
+
+    var doc = parser.parseFromString(svgString, 'application/xml');
+    var container = doc.documentElement;
+
+    this._initialWidth  = container.getAttribute('width');
+    this._initialHeight = container.getAttribute('height');
+
+    container.removeAttribute('width');
+    container.removeAttribute('height');
+
+    this._rawData       = svgString;
+    this._processedData = serializer.serializeToString(doc);
+
+    this._bbox = L.DomUtil.getSVGBBox(container);
+
+    if (container.getAttribute('viewBox') === null) {
+      container.setAttribute('viewBox', this._bbox.join(' '));
+      this._processedData = this._processedData.replace('<svg',
+        '<svg viewBox="' + this._bbox.join(' ') + '"');
+    }
+
+    return container;
+  },
+
+
+  /**
    * SVG is ready
    * @param  {String} svg markup
    */
@@ -207,25 +254,17 @@ L.Schematic = module.exports = L.Rectangle.extend({
       return;
     }
 
-    this._rawData = svg;
-    svg = L.DomUtil.getSVGContainer(svg);
-    var bbox = this._bbox = L.DomUtil.getSVGBBox(svg);
+    svg = this._readSVGData(svg);
+    var bbox = this._bbox;
     var size = this.getOriginalSize();
     var mapSize = this._map.getSize();
 
     if (this.options.adjustToScreen && size.y !== mapSize.y) {
       this._ratio = Math.min(mapSize.x / size.x, mapSize.y / size.y);
-      this.options.zoomOffset = (this._ratio < 1) ?
+      this.options._zoomOffset = (this._ratio < 1) ?
         this._ratio : (1 - this._ratio);
       // dismiss that offset
       this.options.zoomOffset = 0;
-    }
-
-    console.log(this.options.adjustToScreen, bbox, this._ratio, size);
-
-    if (svg.getAttribute('viewBox') === null) {
-      this._rawData = this._rawData.replace('<svg',
-        '<svg viewBox="' + bbox.join(' ') + '"');
     }
 
     var minZoom = this._map.getMinZoom() - this.options.zoomOffset;
@@ -328,11 +367,12 @@ L.Schematic = module.exports = L.Rectangle.extend({
       var scale   = this._map.options.crs.scale(
         this._map.getZoom() - this.options.zoomOffset) * this._ratio;
 
-      topLeft = topLeft.subtract(this._viewBoxOffset.multiplyBy(scale))
+      //topLeft = topLeft.subtract(this._viewBoxOffset.multiplyBy(scale));
 
       // compensate viewbox dismissal with a shift here
       this._group.setAttribute('transform',
-         L.DomUtil.getMatrixString(topLeft, scale));
+         L.DomUtil.getMatrixString(
+          topLeft.subtract(this._viewBoxOffset.multiplyBy(scale)), scale));
 
       if (this._canvasRenderer) {
         this._redrawCanvas(topLeft, scale);
@@ -438,7 +478,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
 
     // this doesn't work in IE, force size
     // img.style.height = img.style.width = '100%';
-    img.style.width = this._size.x + 'px';
+    img.style.width  = this._size.x + 'px';
     img.style.height = this._size.y + 'px';
     img.src = this.toBase64();
 
@@ -447,7 +487,6 @@ L.Schematic = module.exports = L.Rectangle.extend({
       L.point(img.offsetWidth, img.offsetHeight);
       this._reset();
     }, this);
-
     img.style.opacity = 0;
 
     if (this._raster) {
@@ -470,7 +509,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
   toBase64: function() {
     // console.time('base64');
     var base64 = this._base64encoded ||
-      b64.btoa(unescape(encodeURIComponent(this._rawData)));
+      b64.btoa(unescape(encodeURIComponent(this._processedData)));
     this._base64encoded = base64;
     // console.timeEnd('base64');
 

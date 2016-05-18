@@ -37,7 +37,7 @@ function onSelect() {
 
   svg = global.svg = new SvgOverlay(this.value, {
     usePathContainer: true,
-    opacity: 1,
+    //opacity: 1,
     weight: 0.25,
     //useRaster: true,
     load: function(url, callback) {
@@ -61,10 +61,10 @@ function onSelect() {
          color: 'green'
       }).addTo(map);
 
-      global.referenceRect = L.rectangle(svg.getBounds().pad(-0.25), {
-          weight: 1,
-          color: 'red'
-      }).addTo(map);
+      // global.referenceRect = L.rectangle(svg.getBounds().pad(-0.25), {
+      //     weight: 1,
+      //     color: 'red'
+      // }).addTo(map);
 
     }).addTo(map);
 }
