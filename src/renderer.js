@@ -69,9 +69,11 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
    * 3. apply it to the <g> around all markups
    * 4. remove group around schematic
    * 5. remove inner group around markups
-   * @return {String} [description]
+   *
+   * @param {Boolean=} onlyOverlays
+   * @return {SVGElement}
    */
-  exportSVG: function() {
+  exportSVG: function(onlyOverlays) {
     var schematic = this.options.schematic;
 
     // go through every layer and make sure they're not clipped
@@ -80,9 +82,9 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
     var clipPath  = L.SVG.create('clipPath');
     var clipRect  = L.SVG.create('rect');
 
-    clipRect.setAttribute('x', schematic._bbox[0]);
-    clipRect.setAttribute('y', schematic._bbox[1]);
-    clipRect.setAttribute('width', schematic._bbox[2]);
+    clipRect.setAttribute('x',      schematic._bbox[0]);
+    clipRect.setAttribute('y',      schematic._bbox[1]);
+    clipRect.setAttribute('width',  schematic._bbox[2]);
     clipRect.setAttribute('height', schematic._bbox[3]);
     clipPath.appendChild(clipRect);
 
@@ -97,10 +99,18 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
 
     var clipGroup = svg.lastChild;
     clipGroup.setAttribute('clip-path', 'url(#' + clipId + ')');
+
+    var map = this._map;
+    var topLeft = map.latLngToLayerPoint(schematic._bounds.getNorthWest());
+    var scale = schematic._ratio *
+        map.options.crs.scale(map.getZoom() - schematic.options.zoomOffset);
+
     clipGroup.firstChild.setAttribute('transform',
-      clipGroup.getAttribute('transform'));
+      L.DomUtil.getMatrixString(topLeft.multiplyBy( -1 / scale)
+        .add(schematic._viewBoxOffset), 1 / scale));
     clipGroup.removeAttribute('transform');
     svg.querySelector('.svg-overlay').removeAttribute('transform');
+    L.DomUtil.addClass(clipGroup, 'clip-group');
 
     svg.style.transform = '';
     svg.setAttribute('viewBox', schematic._bbox.join(' '));

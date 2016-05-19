@@ -21,7 +21,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     // hardcode zoom offset to snap to some level
     zoomOffset: 0,
     interactive: false,
-    useRaster: !L.Browser.ie
+    useRaster: L.Browser.ie
   },
 
 

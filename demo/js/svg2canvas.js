@@ -31,8 +31,6 @@ xhr({
 
   console.log(viewBox, tl, size, size.x / size.y);
 
-
-
   var img = global.img = new Image();
   img.src = 'data:image/svg+xml;base64,' + encoded;
   img.style.border = '1px solid red';
