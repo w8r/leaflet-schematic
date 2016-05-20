@@ -95,3 +95,20 @@ L.DomUtil.getMatrixString = function(translate, scale) {
   return 'matrix(' +
     [scale, 0, 0, scale, translate.x, translate.y].join(',') + ')';
 };
+
+
+/**
+ * @param  {SVGElement}         svg
+ * @param  {SVGElement|Element} container
+ */
+L.SVG.copySVGContents = function(svg, container) {
+  if (L.Browser.ie) { // innerHTML doesn't work for SVG in IE
+    var child = svg.firstChild;
+    do {
+      container.appendChild(child);
+      child = svg.firstChild;
+    } while(child);
+  } else {
+    container.innerHTML = svg.innerHTML;
+  }
+};

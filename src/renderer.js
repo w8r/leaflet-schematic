@@ -27,6 +27,16 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
 
 
   /**
+   * Make sure layers are not clipped
+   * @param  {L.Layer}
+   */
+  _initPath: function(layer) {
+    layer.options.noClip = true;
+    L.SVG.prototype._initPath.call(this, layer);
+  },
+
+
+  /**
    * Update call on resize, redraw, zoom change
    */
   _update: function() {
@@ -59,43 +69,58 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
    * 3. apply it to the <g> around all markups
    * 4. remove group around schematic
    * 5. remove inner group around markups
-   * @return {String} [description]
+   *
+   * @param {Boolean=} onlyOverlays
+   * @return {SVGElement}
    */
-  exportSVG: function() {
+  exportSVG: function(onlyOverlays) {
     var schematic = this.options.schematic;
+
+    // go through every layer and make sure they're not clipped
     var svg       = this._container.cloneNode(true);
 
-    var clipPath  = L.SVG.create('clipPath');
-    var clipRect  = L.SVG.create('rect');
+    var clipPath    = L.SVG.create('clipPath');
+    var clipRect    = L.SVG.create('rect');
+    var clipGroup   = svg.lastChild;
+    var baseContent = svg.querySelector('.svg-overlay');
+    var defs        = baseContent.querySelector('defs');
 
-    clipRect.setAttribute('x', schematic._bbox[0]);
-    clipRect.setAttribute('y', schematic._bbox[1]);
-    clipRect.setAttribute('width', schematic._bbox[2]);
+    clipRect.setAttribute('x',      schematic._bbox[0]);
+    clipRect.setAttribute('y',      schematic._bbox[1]);
+    clipRect.setAttribute('width',  schematic._bbox[2]);
     clipRect.setAttribute('height', schematic._bbox[3]);
     clipPath.appendChild(clipRect);
 
     var clipId = 'viewboxClip-' + L.Util.stamp(schematic._group);
     clipPath.setAttribute('id', clipId);
-    var defs = svg.querySelector('.svg-overlay defs');
-    if (!defs) {
+
+    if (!defs || onlyOverlays) {
       defs = L.SVG.create('defs');
-      svg.querySelector('.svg-overlay').appendChild(defs);
+      svg.appendChild(defs);
     }
     defs.appendChild(clipPath);
-
-    var clipGroup = svg.lastChild;
     clipGroup.setAttribute('clip-path', 'url(#' + clipId + ')');
+
     clipGroup.firstChild.setAttribute('transform',
-      clipGroup.getAttribute('transform'));
+      L.DomUtil.getMatrixString(this._topLeft.multiplyBy( -1 / this._scale)
+        .add(schematic._viewBoxOffset), 1 / this._scale));
     clipGroup.removeAttribute('transform');
     svg.querySelector('.svg-overlay').removeAttribute('transform');
+    L.DomUtil.addClass(clipGroup, 'clip-group');
 
     svg.style.transform = '';
     svg.setAttribute('viewBox', schematic._bbox.join(' '));
 
-    var div = document.createElement('div');
-    div.innerHTML = (/(\<svg\s+([^>]*)\>)/gi).exec(schematic._rawData)[0] + '</svg>';
-    div.firstChild.innerHTML = svg.innerHTML;
+    if (onlyOverlays) { // leave only markups
+      baseContent.parentNode.removeChild(baseContent);
+    }
+
+    var div = L.DomUtil.create('div', '');
+    // put container around the contents as it was
+    div.innerHTML = (/(\<svg\s+([^>]*)\>)/gi)
+      .exec(schematic._rawData)[0] + '</svg>';
+
+    L.SVG.copySVGContents(svg, div.firstChild);
 
     return div.firstChild;
   }
