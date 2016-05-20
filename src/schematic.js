@@ -7,6 +7,11 @@ require('./utils');
 
 
 /**
+ * Schematic layer to work with SVG schematics or blueprints in Leaflet
+ *
+ * @author Alexander Milevski <info@w8r.name>
+ * @license MIT
+ * @preserve
  * @class Schematic
  * @extends {L.Rectangle}
  */
@@ -330,15 +335,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
    * @param  {SVGElement} svg
    */
   _createContents: function(svg) {
-    if (L.Browser.ie) { // innerHTML doesn't work for SVG in IE
-      var child = svg.firstChild;
-      do {
-        this._group.appendChild(child);
-        child = svg.firstChild;
-      } while(child);
-    } else {
-      this._group.innerHTML = svg.innerHTML;
-    }
+    L.SVG.copySVGContents(svg, this._group);
   },
 
 
@@ -461,10 +458,11 @@ L.Schematic = module.exports = L.Rectangle.extend({
 
   /**
    * @param  {Boolean=} string
+   * @param  {Boolean=} overlaysOnly
    * @return {SVGElement|String}
    */
-  exportSVG: function(string) {
-    var node = this._renderer.exportSVG();
+  exportSVG: function(string, overlaysOnly) {
+    var node = this._renderer.exportSVG(overlaysOnly);
     return string ? node.outerHTML : node;
   },
 

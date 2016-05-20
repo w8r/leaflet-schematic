@@ -79,8 +79,11 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
     // go through every layer and make sure they're not clipped
     var svg       = this._container.cloneNode(true);
 
-    var clipPath  = L.SVG.create('clipPath');
-    var clipRect  = L.SVG.create('rect');
+    var clipPath    = L.SVG.create('clipPath');
+    var clipRect    = L.SVG.create('rect');
+    var clipGroup   = svg.lastChild;
+    var baseContent = svg.querySelector('.svg-overlay');
+    var defs        = baseContent.querySelector('defs');
 
     clipRect.setAttribute('x',      schematic._bbox[0]);
     clipRect.setAttribute('y',      schematic._bbox[1]);
@@ -90,24 +93,17 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
 
     var clipId = 'viewboxClip-' + L.Util.stamp(schematic._group);
     clipPath.setAttribute('id', clipId);
-    var defs = svg.querySelector('.svg-overlay defs');
-    if (!defs) {
+
+    if (!defs || onlyOverlays) {
       defs = L.SVG.create('defs');
-      svg.querySelector('.svg-overlay').appendChild(defs);
+      svg.appendChild(defs);
     }
     defs.appendChild(clipPath);
-
-    var clipGroup = svg.lastChild;
     clipGroup.setAttribute('clip-path', 'url(#' + clipId + ')');
 
-    var map = this._map;
-    var topLeft = map.latLngToLayerPoint(schematic._bounds.getNorthWest());
-    var scale = schematic._ratio *
-        map.options.crs.scale(map.getZoom() - schematic.options.zoomOffset);
-
     clipGroup.firstChild.setAttribute('transform',
-      L.DomUtil.getMatrixString(topLeft.multiplyBy( -1 / scale)
-        .add(schematic._viewBoxOffset), 1 / scale));
+      L.DomUtil.getMatrixString(this._topLeft.multiplyBy( -1 / this._scale)
+        .add(schematic._viewBoxOffset), 1 / this._scale));
     clipGroup.removeAttribute('transform');
     svg.querySelector('.svg-overlay').removeAttribute('transform');
     L.DomUtil.addClass(clipGroup, 'clip-group');
@@ -115,10 +111,16 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
     svg.style.transform = '';
     svg.setAttribute('viewBox', schematic._bbox.join(' '));
 
+    if (onlyOverlays) { // leave only markups
+      baseContent.parentNode.removeChild(baseContent);
+    }
+
     var div = L.DomUtil.create('div', '');
+    // put container around the contents as it was
     div.innerHTML = (/(\<svg\s+([^>]*)\>)/gi)
       .exec(schematic._rawData)[0] + '</svg>';
-    div.firstChild.innerHTML = svg.innerHTML;
+
+    L.SVG.copySVGContents(svg, div.firstChild);
 
     return div.firstChild;
   }
