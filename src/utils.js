@@ -1,7 +1,7 @@
 var L = require('leaflet');
 
 // <use> tags are broken in IE in so many ways
-if ('SVGElementInstance' in global) {
+if ('SVGElementInstance' in window) {
   Object.defineProperty(SVGElementInstance.prototype, 'className', {
     get: function() {
       return this.correspondingElement.className.baseVal;
