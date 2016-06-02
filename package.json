@@ -13,13 +13,11 @@
   },
   "author": "Alexander Milevski <info@w8r.name>",
   "license": "MIT",
-  "peerDependencies": {
-    "leaflet": "^1.0.0-beta.2"
-  },
   "dependencies": {
     "Base64": "^0.3.0"
   },
   "devDependencies": {
+    "leaflet": "^1.0.0-beta.2",
     "babel-preset-es2015": "^6.3.13",
     "babelify": "^7.2.0",
     "browser-filesaver": "^1.1.1",

@@ -1,3 +1,5 @@
+var L = require('leaflet');
+
 /**
  * @class L.SchematicRenderer
  * @param  {Object}
