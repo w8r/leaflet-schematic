@@ -26,7 +26,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     // hardcode zoom offset to snap to some level
     zoomOffset: 0,
     interactive: false,
-    useRaster: L.Browser.ie
+    useRaster: L.Browser.ie || L.Browser.gecko
   },
 
 
@@ -175,6 +175,10 @@ L.Schematic = module.exports = L.Rectangle.extend({
       this.onLoad(this._svg);
     }
 
+    if (L.Browser.gecko) {
+      this._path.setAttribute('pointer-events', 'none');
+    }
+
     if (this.options.useRaster) {
       var canvasRenderer = new L.Canvas({}).addTo(map);
       canvasRenderer._container.parentNode
@@ -232,13 +236,19 @@ L.Schematic = module.exports = L.Rectangle.extend({
     this._initialWidth  = container.getAttribute('width');
     this._initialHeight = container.getAttribute('height');
 
-    container.removeAttribute('width');
-    container.removeAttribute('height');
+    this._bbox = L.DomUtil.getSVGBBox(container);
+
+    // fix width cause otherwise rasterzation will break
+    var width  = this._bbox[2] - this._bbox[0];
+    var height = this._bbox[3] - this._bbox[1];
+    if (parseFloat(this._initialWidth) !== width ||
+      parseFloat(this._initialHeight)  !== height) {
+      container.setAttribute('width',  width);
+      container.setAttribute('height', height);
+    }
 
     this._rawData       = svgString;
     this._processedData = serializer.serializeToString(doc);
-
-    this._bbox = L.DomUtil.getSVGBBox(container);
 
     if (container.getAttribute('viewBox') === null) {
       container.setAttribute('viewBox', this._bbox.join(' '));
@@ -486,6 +496,8 @@ L.Schematic = module.exports = L.Rectangle.extend({
       this._reset();
     }, this);
     img.style.opacity = 0;
+    img.style.zIndex = -9999;
+    img.style.pointerEvents = 'none';
 
     if (this._raster) {
       this._raster.parentNode.removeChild(this._raster);

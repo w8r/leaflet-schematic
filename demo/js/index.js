@@ -32,7 +32,7 @@ var svg = global.svg = null;
 
 map.on('click', function(evt) {
   console.log('map', evt.originalEvent.target,
-    evt.latlng, svg.projectPoint(evt.latlng));
+    evt.latlng, evt, map.hasLayer(svg) ? svg.projectPoint(evt.latlng) : evt);
 });
 
 var select = document.querySelector('#select-schematic');
@@ -46,7 +46,7 @@ function onSelect() {
     usePathContainer: true,
     //opacity: 1,
     weight: 0.25,
-    //useRaster: true,
+    useRaster: true,
     load: function(url, callback) {
       xhr({
         uri: url,
@@ -86,7 +86,8 @@ function trackPosition(evt) {
     console.log(
       evt.latlng,
       svg.projectPoint(evt.latlng).toString(),
-      svg.unprojectPoint(svg.projectPoint(evt.latlng))
+      svg.unprojectPoint(svg.projectPoint(evt.latlng)),
+      evt.originalEvent.target
     );
   }
 }

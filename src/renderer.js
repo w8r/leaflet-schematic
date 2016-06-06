@@ -9,7 +9,8 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
 
   options: {
     padding: 0.3,
-    useRaster: L.Browser.ie
+    useRaster: L.Browser.ie || L.Browser.gecko,
+    interactive: true
   },
 
 
@@ -23,6 +24,10 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
     this._rootInvertGroup = L.SVG.create('g');
     this._container.appendChild(this._rootInvertGroup);
     this._rootInvertGroup.appendChild(this._rootGroup);
+
+    if (L.Browser.gecko) {
+      this._container.setAttribute('pointer-events', 'visiblePainted');
+    }
 
     L.DomUtil.addClass(this._container, 'schematics-renderer');
   },
