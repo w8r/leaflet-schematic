@@ -1,5 +1,7 @@
 var L = require('leaflet');
 
+L.Browser.phantomjs = navigator.userAgent.toLowerCase().indexOf('phantom');
+
 // <use> tags are broken in IE in so many ways
 if ('SVGElementInstance' in window) {
   Object.defineProperty(SVGElementInstance.prototype, 'className', {
@@ -102,7 +104,8 @@ L.DomUtil.getMatrixString = function(translate, scale) {
  * @param  {SVGElement|Element} container
  */
 L.SVG.copySVGContents = function(svg, container) {
-  if (L.Browser.ie) { // innerHTML doesn't work for SVG in IE
+  // SVG innerHTML doesn't work for SVG in IE and PhantomJS
+  if (L.Browser.ie || L.Browser.phantomjs) {
     var child = svg.firstChild;
     do {
       container.appendChild(child);
