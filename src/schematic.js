@@ -115,6 +115,12 @@ L.Schematic = module.exports = L.Rectangle.extend({
     this._viewBoxOffset = L.point(0, 0);
 
 
+    /**
+     * @type {Boolean}
+     */
+    this._ready = false;
+
+
     if (typeof svg === 'string' && !/\<svg/ig.test(svg)) {
       this._svg = null;
 
@@ -162,6 +168,8 @@ L.Schematic = module.exports = L.Rectangle.extend({
    */
   onAdd: function(map) {
     L.Rectangle.prototype.onAdd.call(this, map);
+
+    this._ready = false;
 
     if (!this._group) {
       this._group = L.SVG.create('g');
@@ -300,6 +308,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
       this._group, this._renderer._container.firstChild);
 
     this.fire('load');
+    this._ready = true;
 
     this._latlngs = this._boundsToLatLngs(this._bounds);
     this._reset();
@@ -316,7 +325,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
    * @return {Overlay}
    */
   whenReady: function(callback, context) {
-    if (this._bounds) {
+    if (this._ready) {
       callback.call(context);
     } else {
       this.once('load', callback, context);
