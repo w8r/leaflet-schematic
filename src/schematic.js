@@ -26,7 +26,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     // hardcode zoom offset to snap to some level
     zoomOffset: 0,
     interactive: false,
-    useRaster: L.Browser.ie || L.Browser.gecko
+    useRaster: L.Browser.ie || L.Browser.gecko || L.Browser.edge
   },
 
 
@@ -154,9 +154,11 @@ L.Schematic = module.exports = L.Rectangle.extend({
 
 
     /**
-     * @type {Canvas}
+     * @type {Boolean}
      */
-    this._canvas = null;
+    this._rasterShown = false;
+
+
 
     L.Rectangle.prototype.initialize.call(
       this, L.latLngBounds([0, 0], [0, 0]), options);
@@ -559,9 +561,11 @@ L.Schematic = module.exports = L.Rectangle.extend({
    * Toggle canvas instead of SVG when dragging
    */
   _showRaster: function () {
-    if (this._canvasRenderer) {
+    if (this._canvasRenderer && !this._rasterShown) {
       this._canvasRenderer._container.style.visibility = 'visible';
-      this._group.style.visibility = 'hidden';
+      this._group.style.display = 'none';
+      this._rasterShown = true;
+
     }
   },
 
@@ -570,9 +574,10 @@ L.Schematic = module.exports = L.Rectangle.extend({
    * Swap back to SVG
    */
   _hideRaster: function () {
-    if (this._canvasRenderer) {
+    if (this._canvasRenderer && this._rasterShown) {
       this._canvasRenderer._container.style.visibility = 'hidden';
-      this._group.style.visibility = 'visible';
+      this._group.style.display = 'block';
+      this._rasterShown = false;
     }
   },
 

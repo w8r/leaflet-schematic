@@ -9,7 +9,7 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
 
   options: {
     padding: 0.3,
-    useRaster: L.Browser.ie || L.Browser.gecko,
+    useRaster: L.Browser.ie || L.Browser.gecko || L.Browser.edge,
     interactive: true
   },
 
@@ -142,4 +142,3 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
 L.schematicRenderer = module.exports.schematicRenderer = function(options) {
   return new L.SchematicRenderer(options);
 };
-
