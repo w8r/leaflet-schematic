@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 0",
     "start": "watchify -v -d -t [ babelify --presets [ es2015 ] ] -s L.Schematic demo/js/index.js -o demo/js/build.js & serve -p 3003",
     "lint": "eslint ./src/",
-    "build-js": "browserify -v -d -t [ babelify --presets [ es2015 ] ] -s L.Schematic -u leaflet ./index.js -o dist/L.Schematic.js",
+    "build-js": "browserify -v -t [ babelify --presets [ es2015 ] ] -s L.Schematic -u leaflet ./index.js -o dist/L.Schematic.js",
     "compress": "uglifyjs dist/L.Schematic.js -o dist/L.Schematic.min.js -m --comments",
     "build": "npm run lint && npm run build-js && npm run compress"
   },
@@ -17,14 +17,14 @@
     "Base64": "^0.3.0"
   },
   "devDependencies": {
-    "leaflet": "^1.0.0-beta.2",
     "babel-preset-es2015": "^6.3.13",
     "babelify": "^7.2.0",
     "browser-filesaver": "^1.1.1",
     "browserify": "^13.0.0",
     "eslint": "^2.8.0",
     "faucet": "0.0.1",
-    "leaflet-editable": "leaflet/leaflet.editable#gh-pages",
+    "leaflet": "rc",
+    "leaflet-editable": "^1.0.0-rc.1",
     "serve": "^1.4.0",
     "tape": "^4.4.0",
     "uglifyjs": "^2.4.10",
