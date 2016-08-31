@@ -1,4 +1,4 @@
-var L          = require('leaflet');
+var L          = global.L || require('leaflet');
 var SvgOverlay = require('../../src/schematic');
 var xhr        = require('xhr');
 var saveAs     = require('browser-filesaver').saveAs;
@@ -91,4 +91,3 @@ function trackPosition(evt) {
     );
   }
 }
-

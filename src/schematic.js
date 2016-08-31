@@ -224,11 +224,13 @@ L.Schematic = module.exports = L.Rectangle.extend({
    * Loads svg via XHR
    */
   load: function() {
-    this.options.load(this._url, function(err, svg) {
-      if (!err) {
+    this.options.load(this._url, L.Util.bind(function(err, svg) {
+      if (err) {
+        this.onError(err);
+      } else {
         this.onLoad(svg);
       }
-    }.bind(this));
+    }, this));
   },
 
 
@@ -243,6 +245,10 @@ L.Schematic = module.exports = L.Rectangle.extend({
     var doc = parser.parseFromString(svgString, 'application/xml');
     var container = doc.documentElement;
 
+    if (container.querySelector('parsererror') !== null) {
+      return this.onError(new Error('SVG parse error'));
+    }
+
     this._initialWidth  = container.getAttribute('width');
     this._initialHeight = container.getAttribute('height');
 
@@ -251,6 +257,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     // fix width cause otherwise rasterzation will break
     var width  = this._bbox[2] - this._bbox[0];
     var height = this._bbox[3] - this._bbox[1];
+
     if (parseFloat(this._initialWidth) !== width ||
       parseFloat(this._initialHeight)  !== height) {
       container.setAttribute('width',  width);
@@ -267,6 +274,18 @@ L.Schematic = module.exports = L.Rectangle.extend({
     }
 
     return container;
+  },
+
+
+  /**
+   * @param  {Error} err
+   * @return {Schematic}
+   */
+  onError: function (err) {
+    if (this.options.onError) {
+      this.options.onError.call(this, { error: err });
+    }
+    return this.fire('error', { error: err });
   },
 
 
