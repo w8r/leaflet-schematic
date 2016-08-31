@@ -35,19 +35,36 @@ L.DomUtil.isNode = function(o){
  * @return {Array.<Number>}
  */
 L.DomUtil.getSVGBBox = function(svg) {
+  var svgBBox;
+  var width = parseInt(svg.getAttribute('width'), 10);
+  var height = parseInt(svg.getAttribute('height'), 10);
   var viewBox = svg.getAttribute('viewBox');
   var bbox;
+
   if (viewBox) {
     bbox = viewBox.split(' ').map(parseFloat);
-  } else {
+    svgBBox = [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]];
+  } else if (width && height) {
+    svgBBox = [0, 0, width, height];
+  } else { //Calculate rendered size
     var clone = svg.cloneNode(true);
+    clone.style.position = 'absolute';
+    clone.style.top = 0;
+    clone.style.left = 0;
+    clone.style.zIndex = -1;
+    clone.style.opacity = 0;
+
     document.body.appendChild(clone);
-    // bbox = clone.getBBox();
-    bbox = calcSVGViewBoxFromNodes(clone);
+
+    if (clone.clientWidth && clone.clientHeight) {
+      svgBBox = [0, 0, clone.clientWidth, clone.clientHeight];
+    } else {
+      svgBBox = calcSVGViewBoxFromNodes(clone);
+    }
+
     document.body.removeChild(clone);
-    return bbox;
   }
-  return [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]];
+  return svgBBox;
 };
 
 
