@@ -32,7 +32,6 @@
     "tape": "^4.6.0",
     "tape-run": "^2.1.4",
     "uglifyjs": "^2.4.10",
-    "watchify": "^3.7.0",
     "xhr": "^2.2.0"
   },
   "repository": {
