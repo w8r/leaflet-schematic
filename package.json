@@ -8,9 +8,10 @@
     "test:watch": "nodemon --exec 'npm run test'",
     "start": "budo demo/js/index.js --serve=demo/js/build.js --live -d demo",
     "lint": "eslint ./src/",
+    "build-demo": "browserify -v -t [ babelify --presets [ es2015 ] ] -s L.Schematic ./demo/js/index.js -o demo/js/build.js",
     "build-js": "browserify -v -t [ babelify --presets [ es2015 ] ] -s L.Schematic -u leaflet ./index.js -o dist/L.Schematic.js",
     "compress": "uglifyjs dist/L.Schematic.js -o dist/L.Schematic.min.js -m --comments",
-    "build": "npm run lint && npm run build-js && npm run compress"
+    "build": "npm run build-demo && npm run lint && npm run build-js && npm run compress"
   },
   "author": "Alexander Milevski <info@w8r.name>",
   "license": "MIT",
