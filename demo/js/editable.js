@@ -1,5 +1,4 @@
 var L = require('leaflet');
-require('leaflet-editable');
 
 L.EditControl = L.Control.extend({
 
