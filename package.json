@@ -26,7 +26,6 @@
     "budo": "^9.0.0",
     "eslint": "^2.8.0",
     "faucet": "0.0.1",
-    "leaflet": "rc",
     "leaflet-editable": "^1.0.0-rc.1",
     "nodemon": "^1.10.2",
     "tap-spec": "^4.1.1",
