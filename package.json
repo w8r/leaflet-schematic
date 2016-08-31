@@ -4,7 +4,8 @@
   "description": "Leaflet SVG viewer for non-cartographic high-detailed schematics",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 0",
+    "test": "browserify -v -t [ babelify --presets [ es2015 ] ] test/*.test.js | tape-run --render='tap-spec'",
+    "test:watch": "nodemon --exec 'npm run test'",
     "start": "watchify -v -d -t [ babelify --presets [ es2015 ] ] -s L.Schematic demo/js/index.js -o demo/js/build.js & serve -p 3003",
     "lint": "eslint ./src/",
     "build-js": "browserify -v -t [ babelify --presets [ es2015 ] ] -s L.Schematic -u leaflet ./index.js -o dist/L.Schematic.js",
@@ -25,8 +26,11 @@
     "faucet": "0.0.1",
     "leaflet": "rc",
     "leaflet-editable": "^1.0.0-rc.1",
+    "nodemon": "^1.10.2",
     "serve": "^1.4.0",
-    "tape": "^4.4.0",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.6.0",
+    "tape-run": "^2.1.4",
     "uglifyjs": "^2.4.10",
     "watchify": "^3.7.0",
     "xhr": "^2.2.0"
