@@ -1,4 +1,4 @@
-# Leaflet schematic [![npm version](https://badge.fury.io/js/leaflet-schematic.svg)](http://badge.fury.io/js/leaflet-schematic) [![CircleCI](https://circleci.com/gh/w8r/leaflet-schematic.svg?style=svg)](https://circleci.com/gh/w8r/leaflet-schematic)
+# Leaflet schematic [![npm version](https://badge.fury.io/js/leaflet-schematic.svg)](http://badge.fury.io/js/leaflet-schematic) [![CircleCI](https://circleci.com/gh/w8r/leaflet-schematic/tree/leaflet-1.0.svg?style=svg)](https://circleci.com/gh/w8r/leaflet-schematic/tree/leaflet-1.0)
 
 This is a set of tools to display and work with non-cartographic large
 high-detailed SVG schematics or blueprints. SVG is a perfect format for the
