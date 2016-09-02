@@ -3,7 +3,7 @@ import L    from 'leaflet';
 import bounds from '../src/bounds';
 
 tape('Bounds helpers', (t) => {
-  
+
   t.test('L.Bounds', (t) => {
 
     t.test(' .toBBox', (t) => {

@@ -10,7 +10,7 @@
     "server": "http-server -p 3001",
     "lint": "eslint ./src/",
     "build-demo": "browserify -v -s L.Schematic ./demo/js/index.js -o demo/js/build.js",
-    "build-js": "browserify -v -s L.Schematic -u leaflet ./index.js -o dist/L.Schematic.js",
+    "build-js": "browserify -v -s L.Schematic -t [ browserify-shim ] --external leaflet ./index.js -o dist/L.Schematic.js",
     "compress": "uglifyjs dist/L.Schematic.js -o dist/L.Schematic.min.js -m --comments",
     "build": "npm run build-demo && npm run lint && npm run build-js && npm run compress"
   },
@@ -21,7 +21,6 @@
   },
   "browserify": {
     "transform": [
-      "browserify-shim",
       [
         "babelify",
         {
