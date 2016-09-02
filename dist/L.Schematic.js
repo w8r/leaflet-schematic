@@ -6,7 +6,7 @@ module.exports = require('./src/schematic');
 },{"./src/schematic":5}],2:[function(require,module,exports){
 ;(function () {
 
-  var object = typeof exports != 'undefined' ? exports : this; // #8: web workers
+  var object = typeof exports != 'undefined' ? exports : self; // #8: web workers
   var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
   function InvalidCharacterError(message) {
@@ -67,9 +67,10 @@ module.exports = require('./src/schematic');
 }());
 
 },{}],3:[function(require,module,exports){
-'use strict';
+(function (global){
+"use strict";
 
-var L = require('leaflet');
+var L = typeof window !== "undefined" ? window['L'] : typeof global !== "undefined" ? global['L'] : null;
 
 /**
  * @return {Array.<Number>}
@@ -111,10 +112,12 @@ L.LatLngBounds.prototype.scale = function (value) {
   return new L.LatLngBounds([[sw.lat - deltaY, sw.lng - deltaX], [ne.lat + deltaY, ne.lng + deltaX]]);
 };
 
-},{"leaflet":undefined}],4:[function(require,module,exports){
-'use strict';
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],4:[function(require,module,exports){
+(function (global){
+"use strict";
 
-var L = require('leaflet');
+var L = typeof window !== "undefined" ? window['L'] : typeof global !== "undefined" ? global['L'] : null;
 
 /**
  * @class L.SchematicRenderer
@@ -249,10 +252,12 @@ L.schematicRenderer = module.exports.schematicRenderer = function (options) {
   return new L.SchematicRenderer(options);
 };
 
-},{"leaflet":undefined}],5:[function(require,module,exports){
-'use strict';
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],5:[function(require,module,exports){
+(function (global){
+"use strict";
 
-var L = require('leaflet');
+var L = typeof window !== "undefined" ? window['L'] : typeof global !== "undefined" ? global['L'] : null;
 var b64 = require('Base64');
 var Renderer = require('./renderer');
 
@@ -816,12 +821,14 @@ L.schematic = function (svg, bounds, options) {
   return new L.Schematic(svg, bounds, options);
 };
 
-},{"./bounds":3,"./renderer":4,"./utils":6,"Base64":2,"leaflet":undefined}],6:[function(require,module,exports){
-'use strict';
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./bounds":3,"./renderer":4,"./utils":6,"Base64":2}],6:[function(require,module,exports){
+(function (global){
+"use strict";
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-var L = require('leaflet');
+var L = typeof window !== "undefined" ? window['L'] : typeof global !== "undefined" ? global['L'] : null;
 
 L.Browser.phantomjs = navigator.userAgent.toLowerCase().indexOf('phantom');
 
@@ -842,7 +849,7 @@ if ('SVGElementInstance' in window) {
  * @return {Boolean}
  */
 L.DomUtil.isNode = function (o) {
-  return (typeof Node === 'undefined' ? 'undefined' : _typeof(Node)) === 'object' ? o instanceof Node : o && (typeof o === 'undefined' ? 'undefined' : _typeof(o)) === 'object' && typeof o.nodeType === 'number' && typeof o.nodeName === 'string';
+  return (typeof Node === "undefined" ? "undefined" : _typeof(Node)) === 'object' ? o instanceof Node : o && (typeof o === "undefined" ? "undefined" : _typeof(o)) === 'object' && typeof o.nodeType === 'number' && typeof o.nodeName === 'string';
 };
 
 /**
@@ -945,5 +952,6 @@ L.SVG.copySVGContents = function (svg, container) {
   }
 };
 
-},{"leaflet":undefined}]},{},[1])(1)
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}]},{},[1])(1)
 });
