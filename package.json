@@ -1,6 +1,6 @@
 {
   "name": "leaflet-schematic",
-  "version": "1.0.0-rc.9",
+  "version": "1.0.0-rc.10",
   "description": "Leaflet SVG viewer for non-cartographic high-detailed schematics",
   "main": "index.js",
   "scripts": {
