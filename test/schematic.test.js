@@ -62,7 +62,7 @@ tape('Schematic layer', (t) => {
         map.fitBounds(this.getBounds(), { animate: false });
 
         t.equals(evt.target.toBase64(),
-          'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTAwIDUwMCIgd2lkdGg9IjUwMCIgaGVpZ2h0PSI1MDAiPgogICAgPGNpcmNsZSBjeD0iMjUwIiBjeT0iMjUwIiByPSIxMDAiIGZpbGw9IiNmZjAwMDAiIGlkPSJjaXJjbGUiLz4KICA8L3N2Zz4=', 'Base64');
+          'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNTAwIDUwMCI+CiAgICA8Y2lyY2xlIGN4PSIyNTAiIGN5PSIyNTAiIHI9IjEwMCIgZmlsbD0iI2ZmMDAwMCIgaWQ9ImNpcmNsZSIvPgogIDwvc3ZnPg==', 'Base64');
       }).addTo(map);
 
     t.plan(7);

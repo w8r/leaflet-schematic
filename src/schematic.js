@@ -261,8 +261,8 @@ L.Schematic = module.exports = L.Rectangle.extend({
     var width  = this._bbox[2] - this._bbox[0];
     var height = this._bbox[3] - this._bbox[1];
 
-    if (parseFloat(this._initialWidth) !== width ||
-      parseFloat(this._initialHeight)  !== height) {
+    if ((this._initialWidth  !== null && parseFloat(this._initialWidth)  !== width) ||
+        (this._initialHeight !== null && parseFloat(this._initialHeight) !== height)) {
       container.setAttribute('width',  width);
       container.setAttribute('height', height);
     }
@@ -312,7 +312,6 @@ L.Schematic = module.exports = L.Rectangle.extend({
         this._ratio : (1 - this._ratio);
       // dismiss that offset
       this.options.zoomOffset = 0;
-      
       if (this._ratio === 0) { this._ratio = 1; } // disallow 0 in any case
     }
 
