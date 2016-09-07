@@ -444,7 +444,9 @@ L.Schematic = module.exports = L.Rectangle.extend({
    * @param  {L.Map} map
    */
   onRemove: function onRemove(map) {
-    this._group.parentNode.removeChild(this._group);
+    if (null !== this._group.parentNode) {
+      this._group.parentNode.removeChild(this._group);
+    }
     L.Rectangle.prototype.onRemove.call(this, map);
     if (this._canvasRenderer) {
       this._canvasRenderer.removeFrom(map);

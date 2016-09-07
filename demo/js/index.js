@@ -48,12 +48,22 @@ function onSelect() {
     weight: 0.25,
     useRaster: true,
     load: function(url, callback) {
+
+      if ('pending' === url) {
+        alert('Test network pending, no data will be shown. Switch to another svg');
+        return;
+      }
+
       xhr({
         uri: url,
         headers: {
           "Content-Type": "image/svg+xml"
         }
       }, function (err, resp, svg) {
+        if (200 !== resp.statusCode) {
+          err = resp.statusCode;
+          alert('Network error', err);
+        }
         callback(err, svg);
       });
     }
