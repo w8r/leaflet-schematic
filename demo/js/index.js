@@ -46,7 +46,7 @@ function onSelect() {
     usePathContainer: true,
     //opacity: 1,
     weight: 0.25,
-    useRaster: true,
+    //useRaster: true,
     load: function(url, callback) {
 
       if ('pending' === url) {

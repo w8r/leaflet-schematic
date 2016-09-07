@@ -436,7 +436,8 @@ L.Schematic = module.exports = L.Rectangle.extend({
 
       map.dragging._draggable.on('predrag', this._onPreDrag, this).on('dragend', this._onDragEnd, this);
 
-      canvasRenderer._container.style.visibility = 'hidden';
+      //canvasRenderer._container.style.visibility = 'hidden';
+      canvasRenderer._container.style.display = 'none';
     }
   },
 
@@ -538,6 +539,10 @@ L.Schematic = module.exports = L.Rectangle.extend({
       this.options._zoomOffset = this._ratio < 1 ? this._ratio : 1 - this._ratio;
       // dismiss that offset
       this.options.zoomOffset = 0;
+
+      if (this._ratio === 0) {
+        this._ratio = 1;
+      } // disallow 0 in any case
     }
 
     var minZoom = this._map.getMinZoom() - this.options.zoomOffset;
@@ -770,9 +775,13 @@ L.Schematic = module.exports = L.Rectangle.extend({
    */
   _showRaster: function _showRaster() {
     if (this._canvasRenderer && !this._rasterShown) {
-      this._canvasRenderer._container.style.visibility = 'visible';
+      // console.time('show');
+      // `display` rule somehow appears to be faster in IE, FF
+      // this._canvasRenderer._container.style.visibility = 'visible';
+      this._canvasRenderer._container.style.display = 'block';
       this._group.style.display = 'none';
       this._rasterShown = true;
+      // console.timeEnd('show');
     }
   },
 
@@ -781,9 +790,13 @@ L.Schematic = module.exports = L.Rectangle.extend({
    */
   _hideRaster: function _hideRaster() {
     if (this._canvasRenderer && this._rasterShown) {
-      this._canvasRenderer._container.style.visibility = 'hidden';
+      // console.time('hide');
+      // `display` rule somehow appears to be faster in IE, FF
+      // this._canvasRenderer._container.style.visibility = 'hidden';
+      this._canvasRenderer._container.style.display = 'none';
       this._group.style.display = 'block';
       this._rasterShown = false;
+      // console.timeEnd('hide');
     }
   },
 
