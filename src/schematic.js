@@ -199,7 +199,8 @@ L.Schematic = module.exports = L.Rectangle.extend({
         .on('predrag', this._onPreDrag, this)
         .on('dragend', this._onDragEnd, this);
 
-      canvasRenderer._container.style.visibility = 'hidden';
+      //canvasRenderer._container.style.visibility = 'hidden';
+      canvasRenderer._container.style.display = 'none';
     }
   },
 
@@ -260,8 +261,8 @@ L.Schematic = module.exports = L.Rectangle.extend({
     var width  = this._bbox[2] - this._bbox[0];
     var height = this._bbox[3] - this._bbox[1];
 
-    if (parseFloat(this._initialWidth) !== width ||
-      parseFloat(this._initialHeight)  !== height) {
+    if ((this._initialWidth  !== null && parseFloat(this._initialWidth)  !== width) ||
+        (this._initialHeight !== null && parseFloat(this._initialHeight) !== height)) {
       container.setAttribute('width',  width);
       container.setAttribute('height', height);
     }
@@ -311,6 +312,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
         this._ratio : (1 - this._ratio);
       // dismiss that offset
       this.options.zoomOffset = 0;
+      if (this._ratio === 0) { this._ratio = 1; } // disallow 0 in any case
     }
 
     var minZoom = this._map.getMinZoom() - this.options.zoomOffset;
@@ -583,10 +585,13 @@ L.Schematic = module.exports = L.Rectangle.extend({
    */
   _showRaster: function () {
     if (this._canvasRenderer && !this._rasterShown) {
-      this._canvasRenderer._container.style.visibility = 'visible';
+      // console.time('show');
+      // `display` rule somehow appears to be faster in IE, FF
+      // this._canvasRenderer._container.style.visibility = 'visible';
+      this._canvasRenderer._container.style.display = 'block';
       this._group.style.display = 'none';
       this._rasterShown = true;
-
+      // console.timeEnd('show');
     }
   },
 
@@ -596,9 +601,13 @@ L.Schematic = module.exports = L.Rectangle.extend({
    */
   _hideRaster: function () {
     if (this._canvasRenderer && this._rasterShown) {
-      this._canvasRenderer._container.style.visibility = 'hidden';
+      // console.time('hide');
+      // `display` rule somehow appears to be faster in IE, FF
+      // this._canvasRenderer._container.style.visibility = 'hidden';
+      this._canvasRenderer._container.style.display = 'none';
       this._group.style.display = 'block';
       this._rasterShown = false;
+      // console.timeEnd('hide');
     }
   },
 
