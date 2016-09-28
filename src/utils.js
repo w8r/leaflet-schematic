@@ -1,7 +1,9 @@
 var L = require('leaflet');
 
+L.Browser.phantomjs = navigator.userAgent.toLowerCase().indexOf('phantom');
+
 // <use> tags are broken in IE in so many ways
-if ('SVGElementInstance' in global) {
+if ('SVGElementInstance' in window) {
   Object.defineProperty(SVGElementInstance.prototype, 'className', {
     get: function() {
       return this.correspondingElement.className.baseVal;
@@ -33,19 +35,36 @@ L.DomUtil.isNode = function(o){
  * @return {Array.<Number>}
  */
 L.DomUtil.getSVGBBox = function(svg) {
+  var svgBBox;
+  var width = parseInt(svg.getAttribute('width'), 10);
+  var height = parseInt(svg.getAttribute('height'), 10);
   var viewBox = svg.getAttribute('viewBox');
   var bbox;
+
   if (viewBox) {
     bbox = viewBox.split(' ').map(parseFloat);
-  } else {
+    svgBBox = [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]];
+  } else if (width && height) {
+    svgBBox = [0, 0, width, height];
+  } else { //Calculate rendered size
     var clone = svg.cloneNode(true);
+    clone.style.position = 'absolute';
+    clone.style.top = 0;
+    clone.style.left = 0;
+    clone.style.zIndex = -1;
+    clone.style.opacity = 0;
+
     document.body.appendChild(clone);
-    // bbox = clone.getBBox();
-    bbox = calcSVGViewBoxFromNodes(clone);
+
+    if (clone.clientWidth && clone.clientHeight) {
+      svgBBox = [0, 0, clone.clientWidth, clone.clientHeight];
+    } else {
+      svgBBox = calcSVGViewBoxFromNodes(clone);
+    }
+
     document.body.removeChild(clone);
-    return bbox;
   }
-  return [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]];
+  return svgBBox;
 };
 
 
@@ -94,4 +113,22 @@ L.DomUtil.getSVGContainer = function(str) {
 L.DomUtil.getMatrixString = function(translate, scale) {
   return 'matrix(' +
     [scale, 0, 0, scale, translate.x, translate.y].join(',') + ')';
+};
+
+
+/**
+ * @param  {SVGElement}         svg
+ * @param  {SVGElement|Element} container
+ */
+L.SVG.copySVGContents = function(svg, container) {
+  // SVG innerHTML doesn't work for SVG in IE and PhantomJS
+  if (L.Browser.ie || L.Browser.phantomjs) {
+    var child = svg.firstChild;
+    do {
+      container.appendChild(child);
+      child = svg.firstChild;
+    } while(child);
+  } else {
+    container.innerHTML = svg.innerHTML;
+  }
 };

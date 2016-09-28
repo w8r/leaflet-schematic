@@ -1,1 +1,1 @@
-module.exports = require('./src/svgoverlay');
+module.exports = require('./src/schematic');

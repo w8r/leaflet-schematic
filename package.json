@@ -1,27 +1,56 @@
 {
   "name": "leaflet-schematic",
-  "version": "0.1.3",
+  "version": "1.0.0-rc.11",
   "description": "Leaflet SVG viewer for non-cartographic high-detailed schematics",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 0",
-    "start": "watchify -v -d -t [ babelify --presets [ es2015 ] ] -s L.SVGOverlay demo/js/index.js -o demo/js/build.js & serve -p 3002",
-    "build": "browserify -v -d -t [ babelify --presets [ es2015 ] ] -s L.SVGOverlay -u leaflet ./index.js -o dist/L.SVGOverlay.js"
+    "test": "browserify -v test/*.test.js | tape-run --render='tap-spec'",
+    "test:watch": "nodemon --exec 'npm run test'",
+    "start": "watchify -v -d demo/js/index.js -o demo/js/build.js & npm run server",
+    "server": "http-server -p 3001",
+    "lint": "eslint ./src/",
+    "build-demo": "browserify -v -s L.Schematic ./demo/js/index.js -o demo/js/build.js",
+    "build-js": "browserify -v -s L.Schematic -t [ browserify-shim ] --external leaflet ./index.js -o dist/L.Schematic.js",
+    "compress": "uglifyjs dist/L.Schematic.js -o dist/L.Schematic.min.js -m --comments",
+    "build": "npm run build-demo && npm run lint && npm run build-js && npm run compress"
   },
   "author": "Alexander Milevski <info@w8r.name>",
   "license": "MIT",
   "dependencies": {
-    "Base64": "^0.3.0",
-    "leaflet": "^0.7.3"
+    "Base64": "^1.0.0"
+  },
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "es2015"
+          ]
+        }
+      ]
+    ]
+  },
+  "browserify-shim": {
+    "leaflet": "global:L"
   },
   "devDependencies": {
-    "xhr": "^2.2.0",
-    "babel-preset-es2015": "^6.3.13",
-    "babelify": "^7.2.0",
-    "browserify": "^13.0.0",
+    "babel-preset-es2015": "^6.14.0",
+    "babelify": "^7.3.0",
+    "browser-filesaver": "^1.1.1",
+    "browserify": "^13.1.0",
+    "browserify-shim": "^3.8.12",
+    "eslint": "^3.4.0",
     "faucet": "0.0.1",
-    "tape": "^4.4.0",
-    "watchify": "^3.7.0"
+    "http-server": "^0.9.0",
+    "leaflet": "rc",
+    "nodemon": "^1.10.2",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.6.0",
+    "tape-run": "^2.1.4",
+    "uglifyjs": "^2.4.10",
+    "watchify": "^3.7.0",
+    "xhr": "^2.2.2"
   },
   "repository": {
     "type": "git",

@@ -1,7 +1,9 @@
 <html>
   <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet-src.js"></script>-->
+    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />-->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.0-rc.3/leaflet.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.0-rc.3/leaflet-src.js"></script>
+    <script src="https://cdn.rawgit.com/Leaflet/Leaflet.Editable/gh-pages/src/Leaflet.Editable.js"></script>
     <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.2.3/leaflet.draw.js"></script>-->
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <title>Leaflet schematics</title>
@@ -11,11 +13,17 @@
     <div class="leaflet-bar schema-select">
       <select id="select-schematic">
         <option value="data/1.svg">1.svg</option>
-        <option value="data/2.svg" selected>2.svg</option>
+        <option value="data/2.svg">2.svg</option>
         <option value="data/3.svg">3.svg</option>
         <option value="data/4.svg">4.svg</option>
+        <option value="data/5.svg" selected>5.svg</option>
+        <option value="data/6.svg">6.svg</option>
+        <option value="data/export.svg">exported.svg</option>
+        <option value="pending">Test network pending</option>
+        <option value="data/nosvg.svg">Test network error</option>
         <!-- <option value="data/secret.svg" selected>5.svg</option> -->
       </select>
+      <button id="dl">Download</button>
     </div>
     <script type="text/javascript" src="js/build.js"></script>
   </body>

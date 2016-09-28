@@ -1,4 +1,4 @@
-# Leaflet schematic [![npm version](https://badge.fury.io/js/leaflet-schematic.svg)](http://badge.fury.io/js/leaflet-schematic)
+# Leaflet schematic [![npm version](https://badge.fury.io/js/leaflet-schematic.svg)](http://badge.fury.io/js/leaflet-schematic) [![CircleCI](https://circleci.com/gh/w8r/leaflet-schematic/tree/leaflet-1.0.svg?style=svg)](https://circleci.com/gh/w8r/leaflet-schematic/tree/leaflet-1.0)
 
 This is a set of tools to display and work with non-cartographic large
 high-detailed SVG schematics or blueprints. SVG is a perfect format for the
@@ -55,11 +55,10 @@ several technical limitations and performance issues strike in:
     scaling, somehow it works like a directive to switch the faulty smoothing off
 
 ### Know issues
-* SVGs without correctly provided `viewBox` work really badly and I cannot yet 
+* SVGs without correctly provided `viewBox` work really badly and I cannot yet
   figure out why. I'm trying to calculate viewbox from the contents, but it
   still looks broken in rendered canvas
 
 ## License
 
 MIT
-
