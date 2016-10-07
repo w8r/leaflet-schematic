@@ -339,7 +339,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     this._reset();
 
     if (this.options.useRaster) {
-      this.toImage();
+      L.Util.requestAnimFrame(this.toImage, this);
     }
   },
 

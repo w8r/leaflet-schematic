@@ -133,11 +133,13 @@ tape('Schematic layer', (t) => {
       load: (url, callback) => callback(null, svgString)
     })
     .once('add',  (evt) => {
-      let schematic = evt.target;
-      t.ok(schematic._canvasRenderer, 'canvas renderer is present');
-      t.ok(schematic._raster, 'raster replacement is there');
-      t.equals(schematic._rawData.indexOf('width="500"'), -1, 'width removed from processed');
-      t.equals(schematic._rawData.indexOf('height="500"'), -1, 'height removed from processed');
+      setTimeout(() => {
+        let schematic = evt.target;
+        t.ok(schematic._canvasRenderer, 'canvas renderer is present');
+        t.ok(schematic._raster, 'raster replacement is there');
+        t.equals(schematic._rawData.indexOf('width="500"'), -1, 'width removed from processed');
+        t.equals(schematic._rawData.indexOf('height="500"'), -1, 'height removed from processed');
+      });
     }).addTo(map);
 
     t.end();
