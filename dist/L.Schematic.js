@@ -702,7 +702,13 @@ L.Schematic = module.exports = L.Rectangle.extend({
    */
   exportSVG: function exportSVG(string, overlaysOnly) {
     var node = this._renderer.exportSVG(overlaysOnly);
-    return string ? node.outerHTML : node;
+    if (string) {
+      // outerHTML not supported in IE on SVGElement
+      var wrapper = L.DomUtil.create('div');
+      wrapper.appendChild(node);
+      return wrapper.innerHTML;
+    }
+    return node;
   },
 
   /**
@@ -840,7 +846,7 @@ L.schematic = function (svg, bounds, options) {
 (function (global){
 "use strict";
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var L = typeof window !== "undefined" ? window['L'] : typeof global !== "undefined" ? global['L'] : null;
 
