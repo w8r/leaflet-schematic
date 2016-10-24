@@ -23,7 +23,7 @@ const createMap = () => {
     minZoom: 0,
     maxZoom: 20,
     center: [0, 0],
-    zoom: 1,
+    zoom: 2,
     editable: true,
     crs: L.Util.extend({}, L.CRS.Simple, {
       infinite: false
@@ -34,8 +34,11 @@ const createMap = () => {
   return map;
 }
 
+const width  = 500;
+const height = 500;
+
 const svgString = `
-  <svg viewBox="0 0 500 500">
+  <svg viewBox="0 0 ${width} ${height}">
     <circle cx="250" cy="250" r="100" fill="#ff0000" id="circle" />
   </svg>`;
 
@@ -123,6 +126,7 @@ tape('Schematic layer', (t) => {
   });
 
   t.test(' alternative raster renderer', (t) => {
+    t.plan(4);
     const map = createMap();
     const schematicUrl = 'schematic_url';
     let svg = new SvgOverlay(schematicUrl, {
@@ -141,8 +145,47 @@ tape('Schematic layer', (t) => {
         t.equals(schematic._rawData.indexOf('height="500"'), -1, 'height removed from processed');
       });
     }).addTo(map);
+  });
 
-    t.end();
+  t.test(' export', (t) => {
+    t.plan(10);
+
+    const map = createMap();
+    const schematicUrl = 'schematic_url';
+    let svg = new SvgOverlay(schematicUrl, {
+      usePathContainer: true,
+      weight: 0,
+      useRaster: true,
+      load: (url, callback) => callback(null, svgString)
+    })
+    .once('add',  (evt) => {
+      setTimeout(() => {
+        const schematic = evt.target;
+        const zoom = map.getZoom();
+        const exported = schematic.exportSVG();
+
+        //console.log(map.getZoom(), schematic.exportSVG(true), matrix, 1 / Math.pow(2, map.getZoom()));
+
+        t.equals(Object.prototype.toString.call(exported), '[object SVGSVGElement]', 'exports SVG element by default');
+        t.equals(exported.firstChild.className.baseVal, 'svg-overlay', 'initial document is included');
+        t.ok(exported.firstChild.querySelector('circle'), 'contents are there');
+        t.equals(typeof schematic.exportSVG(true), 'string', 'optionally exports string');
+
+        let exportedOverlay = schematic.exportSVG(false, true);
+        t.equals(exportedOverlay.firstChild.className.baseVal, 'clip-group', 'optionally exports only clipped overlays as node');
+        t.equals(typeof schematic.exportSVG(true, true), 'string', 'or as a string');
+
+        let matrix = exported.querySelector('.clip-group').firstChild.getAttribute('transform');
+        matrix = matrix.substring(7, matrix.length - 1).split(',').map(parseFloat);
+
+        let scale = 1 / Math.pow(2, map.getZoom());
+        t.equals(matrix[0], scale, 'x-scale');
+        t.equals(matrix[3], scale, 'y-scale');
+
+        t.equals(matrix[4], -width / (2 * Math.pow(2, zoom)), 'x positioned at scale');
+        t.equals(matrix[4], -height / (2 * Math.pow(2, zoom)), 'y positioned at scale');
+      });
+    }).addTo(map);
   });
 
   t.end();

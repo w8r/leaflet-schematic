@@ -507,7 +507,13 @@ L.Schematic = module.exports = L.Rectangle.extend({
    */
   exportSVG: function(string, overlaysOnly) {
     var node = this._renderer.exportSVG(overlaysOnly);
-    return string ? node.outerHTML : node;
+    if (string) {
+      // outerHTML not supported in IE on SVGElement
+      var wrapper = L.DomUtil.create('div');
+      wrapper.appendChild(node);
+      return wrapper.innerHTML;
+    }
+    return node;
   },
 
 
