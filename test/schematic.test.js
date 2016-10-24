@@ -23,7 +23,7 @@ const createMap = () => {
     minZoom: 0,
     maxZoom: 20,
     center: [0, 0],
-    zoom: 1,
+    zoom: 2,
     editable: true,
     crs: L.Util.extend({}, L.CRS.Simple, {
       infinite: false
@@ -161,8 +161,7 @@ tape('Schematic layer', (t) => {
     .once('add',  (evt) => {
       setTimeout(() => {
         const schematic = evt.target;
-        const zoom = map.getZoom() + 1;
-        map.setView(map.getCenter(), zoom, { animate: false });
+        const zoom = map.getZoom();
         const exported = schematic.exportSVG();
 
         //console.log(map.getZoom(), schematic.exportSVG(true), matrix, 1 / Math.pow(2, map.getZoom()));
@@ -185,7 +184,6 @@ tape('Schematic layer', (t) => {
 
         t.equals(matrix[4], -width / (2 * Math.pow(2, zoom)), 'x positioned at scale');
         t.equals(matrix[4], -height / (2 * Math.pow(2, zoom)), 'y positioned at scale');
-
       });
     }).addTo(map);
   });
