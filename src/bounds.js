@@ -1,9 +1,9 @@
-var L = require('leaflet');
+const L = require('leaflet');
 
 /**
  * @return {Array.<Number>}
  */
-L.Bounds.prototype.toBBox = function() {
+L.Bounds.prototype.toBBox = function () {
   return [this.min.x, this.min.y, this.max.x, this.max.y];
 };
 
@@ -12,11 +12,10 @@ L.Bounds.prototype.toBBox = function() {
  * @param  {Number} value
  * @return {L.Bounds}
  */
-L.Bounds.prototype.scale = function(value) {
-  var max = this.max;
-  var min = this.min;
-  var deltaX = ((max.x - min.x) / 2) * (value - 1);
-  var deltaY = ((max.y - min.y) / 2) * (value - 1);
+L.Bounds.prototype.scale = function (value) {
+  const { max, min } = this;
+  const deltaX = ((max.x - min.x) / 2) * (value - 1);
+  const deltaY = ((max.y - min.y) / 2) * (value - 1);
 
   return new L.Bounds([
     [min.x - deltaX, min.y - deltaY],
@@ -28,7 +27,7 @@ L.Bounds.prototype.scale = function(value) {
 /**
  * @return {Array.<Number>}
  */
-L.LatLngBounds.prototype.toBBox = function() {
+L.LatLngBounds.prototype.toBBox = function () {
   return [this.getWest(), this.getSouth(), this.getEast(), this.getNorth()];
 };
 
@@ -37,11 +36,11 @@ L.LatLngBounds.prototype.toBBox = function() {
  * @param  {Number} value
  * @return {L.LatLngBounds}
  */
-L.LatLngBounds.prototype.scale = function(value) {
-  var ne = this._northEast;
-  var sw = this._southWest;
-  var deltaX = ((ne.lng - sw.lng) / 2) * (value - 1);
-  var deltaY = ((ne.lat - sw.lat) / 2) * (value - 1);
+L.LatLngBounds.prototype.scale = function (value) {
+  const ne = this._northEast;
+  const sw = this._southWest;
+  const deltaX = ((ne.lng - sw.lng) / 2) * (value - 1);
+  const deltaY = ((ne.lat - sw.lat) / 2) * (value - 1);
 
   return new L.LatLngBounds([
     [sw.lat - deltaY, sw.lng - deltaX],

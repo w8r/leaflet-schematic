@@ -1,8 +1,7 @@
-var L          = require('leaflet');
 var SvgOverlay = require('../../src/schematic');
-var xhr        = require('xhr');
-var saveAs     = require('browser-filesaver').saveAs;
-var Draw       = require('./editable');
+var xhr = require('xhr');
+var saveAs = require('browser-filesaver').saveAs;
+var Draw = require('./editable');
 
 //global.SvgLayer = require('../../src/svglayer');
 
@@ -30,7 +29,7 @@ L.SVG.prototype.options.padding = 0.5;
 
 var svg = global.svg = null;
 
-map.on('click', function(evt) {
+map.on('click', function (evt) {
   console.log('map', evt.originalEvent.target,
     evt.latlng, evt, map.hasLayer(svg) ? svg.projectPoint(evt.latlng) : evt);
 });
@@ -47,7 +46,7 @@ function onSelect() {
     //opacity: 1,
     weight: 0.25,
     //useRaster: true,
-    load: function(url, callback) {
+    load: function (url, callback) {
 
       if ('pending' === url) {
         alert('Test network pending, no data will be shown. Switch to another svg');
@@ -57,7 +56,7 @@ function onSelect() {
       xhr({
         uri: url,
         headers: {
-          "Content-Type": "image/svg+xml"
+          'Content-Type': 'image/svg+xml'
         }
       }, function (err, resp, svg) {
         if (200 !== resp.statusCode) {
@@ -68,10 +67,10 @@ function onSelect() {
       });
     }
   })
-    .once('load', function() {
+    .once('load', function () {
 
       // use schematic renderer
-      controls.forEach(function(control) {
+      controls.forEach(function (control) {
         control.options.renderer = svg._renderer;
       });
 
@@ -86,7 +85,7 @@ L.DomEvent.on(select, 'change', onSelect);
 onSelect.call(select);
 
 
-L.DomEvent.on(document.querySelector('#dl'), 'click', function() {
+L.DomEvent.on(document.querySelector('#dl'), 'click', function () {
   saveAs(new Blob([svg.exportSVG(true)]), 'schematic.svg');
 });
 

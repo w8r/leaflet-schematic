@@ -1,14 +1,14 @@
-var L = require('leaflet');
+const L = require('leaflet');
 
 L.Browser.phantomjs = navigator.userAgent.toLowerCase().indexOf('phantom');
 
 // <use> tags are broken in IE in so many ways
 if ('SVGElementInstance' in window) {
   Object.defineProperty(SVGElementInstance.prototype, 'className', {
-    get: function() {
+    get: function () {
       return this.correspondingElement.className.baseVal;
     },
-    set: function(val) {
+    set: function (val) {
       this.correspondingElement.className.baseVal = val;
     }
   });
@@ -19,13 +19,13 @@ if ('SVGElementInstance' in window) {
  * @param  {*}  o
  * @return {Boolean}
  */
-L.DomUtil.isNode = function(o){
+L.DomUtil.isNode = function (o) {
   return (
     typeof Node === 'object' ?
-    o instanceof Node :
-    o && typeof o === 'object' &&
-    typeof o.nodeType === 'number' &&
-    typeof o.nodeName === 'string'
+      o instanceof Node :
+      o && typeof o === 'object' &&
+      typeof o.nodeType === 'number' &&
+      typeof o.nodeName === 'string'
   );
 };
 
@@ -34,12 +34,12 @@ L.DomUtil.isNode = function(o){
  * @param  {SVGElement} svg
  * @return {Array.<Number>}
  */
-L.DomUtil.getSVGBBox = function(svg) {
-  var svgBBox;
-  var width = parseInt(svg.getAttribute('width'), 10);
-  var height = parseInt(svg.getAttribute('height'), 10);
-  var viewBox = svg.getAttribute('viewBox');
-  var bbox;
+L.DomUtil.getSVGBBox = (svg) => {
+  let svgBBox;
+  const width = parseInt(svg.getAttribute('width'), 10);
+  const height = parseInt(svg.getAttribute('height'), 10);
+  const viewBox = svg.getAttribute('viewBox');
+  let bbox;
 
   if (viewBox) {
     bbox = viewBox.split(' ').map(parseFloat);
@@ -47,7 +47,7 @@ L.DomUtil.getSVGBBox = function(svg) {
   } else if (width && height) {
     svgBBox = [0, 0, width, height];
   } else { //Calculate rendered size
-    var clone = svg.cloneNode(true);
+    const clone = svg.cloneNode(true);
     clone.style.position = 'absolute';
     clone.style.top = 0;
     clone.style.left = 0;
@@ -74,12 +74,12 @@ L.DomUtil.getSVGBBox = function(svg) {
  * @return {Array.<Number>}
  */
 function calcSVGViewBoxFromNodes(svg) {
-  var bbox = [Infinity, Infinity, -Infinity, -Infinity];
-  var nodes = [].slice.call(svg.querySelectorAll('*'));
-  var min = Math.min, max = Math.max;
+  const bbox = [Infinity, Infinity, -Infinity, -Infinity];
+  const nodes = [].slice.call(svg.querySelectorAll('*'));
+  const { min, max } = Math.max;
 
-  for (var i = 0, len = nodes.length; i < len; i++) {
-    var node = nodes[i];
+  for (let i = 0, len = nodes.length; i < len; i++) {
+    let node = nodes[i];
     if (node.getBBox) {
       node = node.getBBox();
 
@@ -98,8 +98,8 @@ function calcSVGViewBoxFromNodes(svg) {
  * @param  {String} str
  * @return {SVGElement}
  */
-L.DomUtil.getSVGContainer = function(str) {
-  var wrapper = document.createElement('div');
+L.DomUtil.getSVGContainer = (str) => {
+  const wrapper = document.createElement('div');
   wrapper.innerHTML = str;
   return wrapper.querySelector('svg');
 };
@@ -110,7 +110,7 @@ L.DomUtil.getSVGContainer = function(str) {
  * @param  {Number}  scale
  * @return {String}
  */
-L.DomUtil.getMatrixString = function(translate, scale) {
+L.DomUtil.getMatrixString = (translate, scale) => {
   return 'matrix(' +
     [scale, 0, 0, scale, translate.x, translate.y].join(',') + ')';
 };
@@ -120,14 +120,14 @@ L.DomUtil.getMatrixString = function(translate, scale) {
  * @param  {SVGElement}         svg
  * @param  {SVGElement|Element} container
  */
-L.SVG.copySVGContents = function(svg, container) {
+L.SVG.copySVGContents = (svg, container) => {
   // SVG innerHTML doesn't work for SVG in IE and PhantomJS
   if (L.Browser.ie || L.Browser.phantomjs) {
-    var child = svg.firstChild;
+    let child = svg.firstChild;
     do {
       container.appendChild(child);
       child = svg.firstChild;
-    } while(child);
+    } while (child);
   } else {
     container.innerHTML = svg.innerHTML;
   }

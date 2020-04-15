@@ -21,8 +21,9 @@ L.EditControl = L.Control.extend({
     L.DomEvent
       .on(link, 'click', L.DomEvent.stop)
       .on(link, 'click', function () {
+        console.log(editTools);
         window.LAYER = editTools[this.options.callback].call(editTools, null, {
-          renderer : this.options.renderer
+          renderer: this.options.renderer
         });
       }, this);
 

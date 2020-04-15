@@ -1,4 +1,4 @@
-var L = require('leaflet');
+const L = require('leaflet');
 
 /**
  * @class L.SchematicRenderer
@@ -18,7 +18,7 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
    * Create additional containers for the vector features to be
    * transformed to live in the schematic space
    */
-  _initContainer: function() {
+  _initContainer() {
     L.SVG.prototype._initContainer.call(this);
 
     this._rootInvertGroup = L.SVG.create('g');
@@ -37,7 +37,7 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
    * Make sure layers are not clipped
    * @param  {L.Layer}
    */
-  _initPath: function(layer) {
+  _initPath(layer) {
     layer.options.noClip = true;
     L.SVG.prototype._initPath.call(this, layer);
   },
@@ -46,26 +46,26 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
   /**
    * Update call on resize, redraw, zoom change
    */
-  _update: function() {
+  _update() {
     L.SVG.prototype._update.call(this);
 
-    var schematic = this.options.schematic;
-    var map = this._map;
+    const schematic = this.options.schematic;
+    const map = this._map;
 
     if (map && schematic._bounds && this._rootInvertGroup) {
-      var topLeft = map.latLngToLayerPoint(schematic._bounds.getNorthWest());
-      var scale   = schematic._ratio *
+      const topLeft = map.latLngToLayerPoint(schematic._bounds.getNorthWest());
+      const scale = schematic._ratio *
         map.options.crs.scale(map.getZoom() - schematic.options.zoomOffset);
 
       this._topLeft = topLeft;
-      this._scale   = scale;
+      this._scale = scale;
 
       // compensate viewbox dismissal with a shift here
       this._rootGroup.setAttribute('transform',
-         L.DomUtil.getMatrixString(topLeft, scale));
+        L.DomUtil.getMatrixString(topLeft, scale));
 
       this._rootInvertGroup.setAttribute('transform',
-        L.DomUtil.getMatrixString(topLeft.multiplyBy( -1 / scale), 1 / scale));
+        L.DomUtil.getMatrixString(topLeft.multiplyBy(-1 / scale), 1 / scale));
     }
   },
 
@@ -80,25 +80,25 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
    * @param {Boolean=} onlyOverlays
    * @return {SVGElement}
    */
-  exportSVG: function(onlyOverlays) {
-    var schematic = this.options.schematic;
+  exportSVG(onlyOverlays) {
+    const schematic = this.options.schematic;
 
     // go through every layer and make sure they're not clipped
-    var svg       = this._container.cloneNode(true);
+    const svg = this._container.cloneNode(true);
 
-    var clipPath    = L.SVG.create('clipPath');
-    var clipRect    = L.SVG.create('rect');
-    var clipGroup   = svg.lastChild;
-    var baseContent = svg.querySelector('.svg-overlay');
-    var defs        = baseContent.querySelector('defs');
+    const clipPath = L.SVG.create('clipPath');
+    const clipRect = L.SVG.create('rect');
+    const clipGroup = svg.lastChild;
+    const baseContent = svg.querySelector('.svg-overlay');
+    let defs = baseContent.querySelector('defs');
 
-    clipRect.setAttribute('x',      schematic._bbox[0]);
-    clipRect.setAttribute('y',      schematic._bbox[1]);
-    clipRect.setAttribute('width',  schematic._bbox[2]);
+    clipRect.setAttribute('x', schematic._bbox[0]);
+    clipRect.setAttribute('y', schematic._bbox[1]);
+    clipRect.setAttribute('width', schematic._bbox[2]);
     clipRect.setAttribute('height', schematic._bbox[3]);
     clipPath.appendChild(clipRect);
 
-    var clipId = 'viewboxClip-' + L.Util.stamp(schematic._group);
+    const clipId = 'viewboxClip-' + L.Util.stamp(schematic._group);
     clipPath.setAttribute('id', clipId);
 
     if (!defs || onlyOverlays) {
@@ -109,7 +109,7 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
     clipGroup.setAttribute('clip-path', 'url(#' + clipId + ')');
 
     clipGroup.firstChild.setAttribute('transform',
-      L.DomUtil.getMatrixString(this._topLeft.multiplyBy( -1 / this._scale)
+      L.DomUtil.getMatrixString(this._topLeft.multiplyBy(-1 / this._scale)
         .add(schematic._viewBoxOffset), 1 / this._scale));
     clipGroup.removeAttribute('transform');
     svg.querySelector('.svg-overlay').removeAttribute('transform');
@@ -122,7 +122,7 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
       baseContent.parentNode.removeChild(baseContent);
     }
 
-    var div = L.DomUtil.create('div', '');
+    const div = L.DomUtil.create('div', '');
     // put container around the contents as it was
     div.innerHTML = (/(\<svg\s+([^>]*)\>)/gi)
       .exec(schematic._rawData)[0] + '</svg>';
@@ -139,6 +139,5 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
  * @param  {Object}
  * @return {L.SchematicRenderer}
  */
-L.schematicRenderer = module.exports.schematicRenderer = function(options) {
-  return new L.SchematicRenderer(options);
-};
+L.schematicRenderer = module.exports.schematicRenderer =
+  (options) => new L.SchematicRenderer(options);

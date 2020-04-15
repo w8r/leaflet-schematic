@@ -1,70 +1,88 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.L || (g.L = {})).Schematic = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}(g.L || (g.L = {})).Schematic = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./src/schematic');
 
 },{"./src/schematic":5}],2:[function(require,module,exports){
-;(function () {
+(function(f) {
 
-  var object = typeof exports != 'undefined' ? exports : self; // #8: web workers
+  'use strict';
+
+  /* istanbul ignore else */
+  if (typeof exports === 'object' && exports != null &&
+      typeof exports.nodeType !== 'number') {
+    module.exports = f ();
+  } else if (typeof define === 'function' && define.amd != null) {
+    define ([], f);
+  } else {
+    var base64 = f ();
+    var global = typeof self !== 'undefined' ? self : $.global;
+    if (typeof global.btoa !== 'function') global.btoa = base64.btoa;
+    if (typeof global.atob !== 'function') global.atob = base64.atob;
+  }
+
+} (function() {
+
+  'use strict';
+
   var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
   function InvalidCharacterError(message) {
     this.message = message;
   }
-  InvalidCharacterError.prototype = new Error;
+  InvalidCharacterError.prototype = new Error ();
   InvalidCharacterError.prototype.name = 'InvalidCharacterError';
 
   // encoder
   // [https://gist.github.com/999166] by [https://github.com/nignag]
-  object.btoa || (
-  object.btoa = function (input) {
-    var str = String(input);
+  function btoa(input) {
+    var str = String (input);
     for (
       // initialize result and counter
       var block, charCode, idx = 0, map = chars, output = '';
       // if the next str index does not exist:
       //   change the mapping table to "="
       //   check if d has no fractional digits
-      str.charAt(idx | 0) || (map = '=', idx % 1);
+      str.charAt (idx | 0) || (map = '=', idx % 1);
       // "8 - idx % 1 * 8" generates the sequence 2, 4, 6, 8
-      output += map.charAt(63 & block >> 8 - idx % 1 * 8)
+      output += map.charAt (63 & block >> 8 - idx % 1 * 8)
     ) {
-      charCode = str.charCodeAt(idx += 3/4);
+      charCode = str.charCodeAt (idx += 3 / 4);
       if (charCode > 0xFF) {
-        throw new InvalidCharacterError("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
+        throw new InvalidCharacterError ("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
       }
       block = block << 8 | charCode;
     }
     return output;
-  });
+  }
 
   // decoder
   // [https://gist.github.com/1020396] by [https://github.com/atk]
-  object.atob || (
-  object.atob = function (input) {
-    var str = String(input).replace(/=+$/, '');
-    if (str.length % 4 == 1) {
-      throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
+  function atob(input) {
+    var str = (String (input)).replace (/[=]+$/, ''); // #31: ExtendScript bad parse of /=
+    if (str.length % 4 === 1) {
+      throw new InvalidCharacterError ("'atob' failed: The string to be decoded is not correctly encoded.");
     }
     for (
       // initialize result and counters
       var bc = 0, bs, buffer, idx = 0, output = '';
       // get next character
-      buffer = str.charAt(idx++);
+      buffer = str.charAt (idx++); // eslint-disable-line no-cond-assign
       // character found in table? initialize bit storage and add its ascii value;
       ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
         // and if not first of each 4 characters,
         // convert the first 8 bits to one ascii character
-        bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
+        bc++ % 4) ? output += String.fromCharCode (255 & bs >> (-2 * bc & 6)) : 0
     ) {
       // try to find character in table (0-63, not found => -1)
-      buffer = chars.indexOf(buffer);
+      buffer = chars.indexOf (buffer);
     }
     return output;
-  });
+  }
 
-}());
+  return {btoa: btoa, atob: atob};
+
+}));
 
 },{}],3:[function(require,module,exports){
 (function (global){
@@ -84,8 +102,9 @@ L.Bounds.prototype.toBBox = function () {
  * @return {L.Bounds}
  */
 L.Bounds.prototype.scale = function (value) {
-  var max = this.max;
-  var min = this.min;
+  var max = this.max,
+      min = this.min;
+
   var deltaX = (max.x - min.x) / 2 * (value - 1);
   var deltaY = (max.y - min.y) / 2 * (value - 1);
 
@@ -150,6 +169,7 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
     L.DomUtil.addClass(this._container, 'schematics-renderer');
   },
 
+
   /**
    * Make sure layers are not clipped
    * @param  {L.Layer}
@@ -158,6 +178,7 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
     layer.options.noClip = true;
     L.SVG.prototype._initPath.call(this, layer);
   },
+
 
   /**
    * Update call on resize, redraw, zoom change
@@ -181,6 +202,7 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
       this._rootInvertGroup.setAttribute('transform', L.DomUtil.getMatrixString(topLeft.multiplyBy(-1 / scale), 1 / scale));
     }
   },
+
 
   /**
    * 1. wrap markup in another <g>
@@ -241,7 +263,6 @@ L.SchematicRenderer = module.exports = L.SVG.extend({
 
     return div.firstChild;
   }
-
 });
 
 /**
@@ -405,6 +426,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     L.Rectangle.prototype.initialize.call(this, L.latLngBounds([0, 0], [0, 0]), options);
   },
 
+
   /**
    * @param  {L.Map} map
    */
@@ -441,6 +463,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     }
   },
 
+
   /**
    * @param  {L.Map} map
    */
@@ -456,6 +479,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     this._renderer.removeFrom(map);
   },
 
+
   /**
    * Loads svg via XHR
    */
@@ -468,6 +492,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
       }
     }, this));
   },
+
 
   /**
    * @param  {String} svgString
@@ -509,6 +534,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     return container;
   },
 
+
   /**
    * @param  {Error} err
    * @return {Schematic}
@@ -519,6 +545,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     }
     return this.fire('error', { error: err });
   },
+
 
   /**
    * SVG is ready
@@ -567,6 +594,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     }
   },
 
+
   /**
    * @param  {Function} callback
    * @param  {*=}       context
@@ -581,12 +609,14 @@ L.Schematic = module.exports = L.Rectangle.extend({
     return this;
   },
 
+
   /**
    * @return {SVGElement}
    */
   getDocument: function getDocument() {
     return this._group;
   },
+
 
   /**
    * @return {L.SchematicRenderer}
@@ -595,12 +625,14 @@ L.Schematic = module.exports = L.Rectangle.extend({
     return this._renderer;
   },
 
+
   /**
    * @param  {SVGElement} svg
    */
   _createContents: function _createContents(svg) {
     L.SVG.copySVGContents(svg, this._group);
   },
+
 
   /**
    * @return {L.Point}
@@ -609,6 +641,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     var bbox = this._bbox;
     return new L.Point(Math.abs(bbox[0] - bbox[2]), Math.abs(bbox[1] - bbox[3]));
   },
+
 
   /**
    * Position our "rectangle"
@@ -632,6 +665,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     }
   },
 
+
   /**
    * Scales projected point FROM viewportized schematic ratio
    * @param  {L.Point} pt
@@ -640,6 +674,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
   _unscalePoint: function _unscalePoint(pt) {
     return this._transformation.transform(this._transformation.untransform(pt).divideBy(this._ratio));
   },
+
 
   /**
    * Scales projected point TO viewportized schematic ratio
@@ -650,12 +685,14 @@ L.Schematic = module.exports = L.Rectangle.extend({
     return this._transformation.transform(this._transformation.untransform(pt).multiplyBy(this._ratio));
   },
 
+
   /**
    * @return {Number}
    */
   getRatio: function getRatio() {
     return this._ratio;
   },
+
 
   /**
    * Transform map coord to schematic point
@@ -667,6 +704,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     return this._unscalePoint(map.project(coord, map.getMinZoom() + this.options.zoomOffset));
   },
 
+
   /**
    * @param  {L.Point} pt
    * @return {L.LatLng}
@@ -675,6 +713,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     var map = this._map;
     return map.unproject(this._scalePoint(pt), map.getMinZoom() + this.options.zoomOffset);
   },
+
 
   /**
    * @param  {L.Bounds} bounds
@@ -686,6 +725,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     return L.latLngBounds(sw, ne);
   },
 
+
   /**
    * Transform layerBounds to schematic bbox
    * @param  {L.LatLngBounds} bounds
@@ -694,6 +734,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
   projectBounds: function projectBounds(bounds) {
     return new L.Bounds(this.projectPoint(bounds.getSouthWest()), this.projectPoint(bounds.getNorthEast()));
   },
+
 
   /**
    * @param  {Boolean=} string
@@ -711,11 +752,14 @@ L.Schematic = module.exports = L.Rectangle.extend({
     return node;
   },
 
+
   /**
   * Rasterizes the schematic
   * @return {Schematic}
   */
   toImage: function toImage() {
+    var _this = this;
+
     var img = new Image();
 
     // this doesn't work in IE, force size
@@ -727,8 +771,8 @@ L.Schematic = module.exports = L.Rectangle.extend({
     // hack to trick IE rendering engine
     L.DomEvent.on(img, 'load', function () {
       L.point(img.offsetWidth, img.offsetHeight);
-      this._reset();
-    }, this);
+      _this._reset();
+    });
     img.style.opacity = 0;
     img.style.zIndex = -9999;
     img.style.pointerEvents = 'none';
@@ -744,6 +788,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     return this;
   },
 
+
   /**
    * Convert SVG data to base64 for rasterization
    * @return {String} base64 encoded SVG
@@ -756,6 +801,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
 
     return 'data:image/svg+xml;base64,' + base64;
   },
+
 
   /**
    * Redraw canvas on real changes: zoom, viewreset
@@ -775,6 +821,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     }, this);
   },
 
+
   /**
    * Toggle canvas instead of SVG when dragging
    */
@@ -789,6 +836,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
       // console.timeEnd('show');
     }
   },
+
 
   /**
    * Swap back to SVG
@@ -805,6 +853,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     }
   },
 
+
   /**
    * IE-only
    * Replace SVG with canvas before drag
@@ -815,6 +864,7 @@ L.Schematic = module.exports = L.Rectangle.extend({
     }
   },
 
+
   /**
    * Drag end: put SVG back in IE
    */
@@ -823,7 +873,6 @@ L.Schematic = module.exports = L.Rectangle.extend({
       this._hideRaster();
     }
   }
-
 });
 
 // aliases
@@ -877,11 +926,11 @@ L.DomUtil.isNode = function (o) {
  * @return {Array.<Number>}
  */
 L.DomUtil.getSVGBBox = function (svg) {
-  var svgBBox;
+  var svgBBox = void 0;
   var width = parseInt(svg.getAttribute('width'), 10);
   var height = parseInt(svg.getAttribute('height'), 10);
   var viewBox = svg.getAttribute('viewBox');
-  var bbox;
+  var bbox = void 0;
 
   if (viewBox) {
     bbox = viewBox.split(' ').map(parseFloat);
@@ -918,8 +967,10 @@ L.DomUtil.getSVGBBox = function (svg) {
 function calcSVGViewBoxFromNodes(svg) {
   var bbox = [Infinity, Infinity, -Infinity, -Infinity];
   var nodes = [].slice.call(svg.querySelectorAll('*'));
-  var min = Math.min,
-      max = Math.max;
+  var _Math$max = Math.max,
+      min = _Math$max.min,
+      max = _Math$max.max;
+
 
   for (var i = 0, len = nodes.length; i < len; i++) {
     var node = nodes[i];
